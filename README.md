@@ -10,4 +10,4 @@
 - Cancinos José María  (<jmcancinos97@gmail.com>)
 - Oliva Nahuel David   (<nadaol@hotmail.com>)
 
-### [Historial de Avances](https://docs.google.com/document/d/1KbbZBfgXPzUd-JjoHoQfqtT3E3Fl01qclLf1VkUOZUY/edit?usp=sharing)
+#### - [Historial de Avances](https://docs.google.com/document/d/1KbbZBfgXPzUd-JjoHoQfqtT3E3Fl01qclLf1VkUOZUY/edit?usp=sharing)
