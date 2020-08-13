@@ -10,4 +10,4 @@
 - Cancinos José María  (<jmcancinos97@gmail.com>)
 - Oliva Nahuel David   (<nadaol@hotmail.com>)
 
-#### - [Documento de avances](https://docs.google.com/document/d/1KbbZBfgXPzUd-JjoHoQfqtT3E3Fl01qclLf1VkUOZUY/edit?usp=sharing) [& Planilla de avances](https://docs.google.com/spreadsheets/d/1-fFx5ETeMnNhrxgCORMWgcmKeKTp4sZ_OK4yFtKkHLk/edit?usp=sharing)
+#### - [Documento](https://docs.google.com/document/d/1KbbZBfgXPzUd-JjoHoQfqtT3E3Fl01qclLf1VkUOZUY/edit?usp=sharing) [& Planilla de avances](https://docs.google.com/spreadsheets/d/1-fFx5ETeMnNhrxgCORMWgcmKeKTp4sZ_OK4yFtKkHLk/edit?usp=sharing)
