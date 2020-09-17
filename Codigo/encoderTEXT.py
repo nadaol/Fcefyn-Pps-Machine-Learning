@@ -19,57 +19,79 @@ from glob import glob
 from PIL import Image
 import pickle
 
-## -------
+## Evaluación del codificador de texto . Almacena las salidas en encoded_captions_path.
 
-### Tamano maximo de cada caption
+# Funcion para calcular tamaño maximo de los elementos t de tensor
 def calc_max_length(tensor):
     return max(len(t) for t in tensor)
 
-## Descarga de annotations
-annotation_folder = '/annotations/'
-annotation_file = os.path.abspath('.') +'/annotations/captions_train2014.json'
+## ----- PATHS variables for docker execution (mapped volume : workspace )
 
-max_length_set = 49
+# Path para la lectura de las annotations
+annotation_folder = '/workspace/datasets/COCO/annotations'
+annotation_file = annotation_folder + '/captions_train2014.json'
 
-# Descarga de imagenes
-image_folder = '/img_embeddings/'
-PATH = os.path.abspath('.') + image_folder
+# Path para cargar el checkpoint del encoder y evaluar                         
+checkpoint_path = '/workspace/checkpoints/text_encoder/'
 
-# Lectura de annotations
+# Path para cargar el tokenizer
+pickle_tokenizer_path = '/workspace/pickle_saves/tokenizer/tokenizer.pickle'
+
+# Path para guardar la salida del codificador
+encoded_captions_path = '/workspace/pickle_saves/encoded_captions/'
+
+# Lectura de annotations 
 with open(annotation_file, 'r') as f:
     annotations = json.load(f)
 
-## Guardo captions e imagenes
+#Sort annotations by image_id ----- agregado
+annotations['annotations'] = sorted(annotations['annotations'], key = lambda i: i['image_id']) 
+
+## Cargado de captions e id's de las imagenes correspondientes
 all_all_captions = []
 all_all_img_name_vector = []
 
-for annot in annotations['annotations']:
-    caption = '<start> ' + annot['caption'] + ' <end>' # codifico captions con token inicio fin y anottations
-    all_all_captions.append(caption) # guardo caption
-    all_all_img_name_vector.append(annot['image_id']) # Guardo imagen
+for annot in annotations['annotations']: # annotation['annotations'][0] = {'image_id': 318556, 'id': 48, 'caption': 'A very clean and well decorated empty bathroom'}
+    caption = '<start> ' + annot['caption'] + ' <end>' # Parseo annotations agregando simbolos de inicio y fin .
+    all_all_captions.append(caption)                  # Guardo en caption las annotations parseadas
+    all_all_img_name_vector.append(annot['image_id']) # Guardo id de la imagen correspondiente al caption (all_all_img_name_vector[0] = 318556)
 
-# Elijo "k" palabras del vocabulario
+print('caption : %s \nimage_id : %d \n'% (all_all_captions[0],all_all_img_name_vector[0]))
+
+# Limite del vocabulario a k palabras.
 top_k = 5000
 
-## Obtenemos tokenizer
-with open('./tokenizer_new/tokenizer.pickle', 'rb') as handle:
+# Obtenemos tokenizer para dividir las captions en palabras
+with open(pickle_tokenizer_path, 'rb') as handle:
     tokenizer = pickle.load(handle)
 
-# Dividir texto en palabras
+# Obtengo la lista que representan las captions (414113 captions)
+# all_all_captions[0] = <start> A very clean and well decorated empty bathroom <end>
 all_all_captions = tokenizer.texts_to_sequences(all_all_captions)
+# all_all_captions[0] = -> [3, 2, 136, 491, 10, 622, 430, 271, 58, 4]
 
 all_captions = []
 all_img_name_vector  = []
 
+#Limite para la cantidad de palabras de un caption.
+max_length_set = 49
+
+# Filtro aquellas captions mayores a max_length_set
 for i in range(len(all_all_captions)):
-    if len(all_all_captions[i]) <= max_length_set:
+    if len(all_all_captions[i]) <= max_length_set:  
         all_captions.append(all_all_captions[i])
         all_img_name_vector.append(all_all_img_name_vector[i])
 
-max_length = max(len(t) for t in all_captions)
+# con length 49 quedan 414108 captions
+max_length = calc_max_length(all_captions)
+#print(max_length)
+#print(np.array(all_captions).shape)
 
-# Aplico padding a las palabras
+# Aplico padding a las captions , para obtener captions con tamaño fijo = max_length
 all_captions = tf.keras.preprocessing.sequence.pad_sequences(all_captions,maxlen=max_length, padding='post')
+
+#all_captions [0] = [  3   2 136 491  10 622 430 271  58   4   0   0  ....  0   0   0   0   0   0   0   0   0   0   0   0]
+
 
 # Parametros del modelo
 max_length = 49
@@ -101,7 +123,7 @@ class Encoder(tf.keras.Model):
     output_gru, state = self.gru(x, initial_state = hidden) # capa GRU
     cnn1out = self.cnn1(output_gru) # capa CNN
     flat_vec = tf.reshape(cnn1out,[cnn1out.shape[0],cnn1out.shape[1]*cnn1out.shape[2]]) # Flattened
-    output = self.fc(flat_vec)   # capa de salida - FC
+    output = self.fc(flat_vec)   # capa densa de salida - FC
     return output, state
 
 # Inicio hidden state todo en cero
@@ -114,22 +136,10 @@ print("parametros encoder",vocab_inp_size, embedding_dim, units, output_size, BA
 # Obtengo ENCODER
 encoder = Encoder(vocab_inp_size, embedding_dim, units, output_size, BATCH_SIZE)
 
-# Agrego optimizador Adam para gradiente
+# Instancio objeto optimizador Adam 
 optimizer = tf.keras.optimizers.Adam()
 
-# Calculo MSE
-loss_object = tf.keras.losses.MeanSquaredError()
-
-## Funcion de perdida
-def loss_function(real, pred):
-  loss_ = loss_object(real, pred)
-  return tf.reduce_mean(loss_)
-
-
-# Defino path para guardar checkpoint                          
-checkpoint_path = './ckk_pru'
-
-# Creamos checkpoints para guardar modelo y optimizador 
+# Creamos objeto Checkpoint para cargar el encoder entrenado previamente
 ckpt = tf.train.Checkpoint(encoder=encoder,
                            optimizer = optimizer)
 
@@ -139,34 +149,42 @@ ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
 # Restoring the latest checkpoint in checkpoint_path
 ckpt.restore(ckpt_manager.latest_checkpoint) 
 
-# Funcion para inicializacion y funcionamiento de encoder
-def evaluate(cap):
+# Funcion para inicializacion y evaluación del encoder
+def evaluate(caption):
   
   enc_hidden = encoder.initialize_hidden_state()
-  enc_output, enc_hidden = encoder(cap, enc_hidden) 
+  enc_output, enc_hidden = encoder(caption, enc_hidden) 
   return enc_output
 
-# Defino path para guardar anotaciones
-annotation_folder = '/annotations/'
-annotation_file = os.path.abspath('.') +'/annotations/captions_train2014.json'
-
-# Cargo dataset con imagenes y captions con las dimensiones de cada uno
+# Cargo dataset con los captions ya procesados (all_captions)
 dataset = tf.data.Dataset.from_tensor_slices((all_captions,all_img_name_vector))
 dataset = dataset.batch(BATCH_SIZE) # divido en batch
 dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE) # optimizado para la operacion
 
+""" #Codifica los captions y los guarda en encoded_images_path
 text_id = 0
-for (batch,(cap,img_name)) in enumerate(dataset):
-    text_encoded_vec = evaluate(cap) # salida del encoder
+for (batch,(caption,img_name)) in enumerate(dataset):
+    text_encoded_vec = evaluate(caption) # salida del encoder
     for i in range(64): 
       text_id += 1
-      full_coco_text_path = PATH + 'encodedText_%012d_%012d.emdt' % (img_name[i],text_id)
-      with open(full_coco_text_path, 'wb') as handle:
-        # elimino elementos de texto encoded
+      full_encoded_captions_path = encoded_captions_path + 'encodedText_%012d_%012d.emdt' % (img_name[i],text_id)
+      with open(full_encoded_captions_path, 'wb') as handle:
         pickle.dump(text_encoded_vec[i].numpy(), handle, protocol=pickle.HIGHEST_PROTOCOL) 
     if batch % 20==0:
       print("batch",batch)
+    if(batch == 9):       #------------- agregado para codificar solo las primeras 640 captions
+      break """
 
+
+# Carga una caption codificada ,por img_id y text_id  --- agregado
+def load_encoded_caption(img_id,text_id):
+  with open(encoded_captions_path + 'encodedText_%012d_%012d.emdt' % (img_id,text_id), 'rb') as handle:
+    return pickle.load(handle)
+vec = load_encoded_caption(9,1)
+print(vec)
+print(vec[127])
+
+#[ 0.00625938  0.00668656  0.01346777 ...  0.00584808  0.00308381 -0.00475015]
 
 
 
