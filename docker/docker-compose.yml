@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+    tf_service:
+        image: aldo/tf02:new1
+        container_name: tf_container
+        volumes:
+        #    - ../src/aldo_09_2020:/workspace/src
+        - ../workspace:/workspace
+        runtime: nvidia
+        environment:
+            - NVIDIA_VISIBLE_DEVICES=all
+        stdin_open: true
+        tty: true
+        command: /bin/bash
