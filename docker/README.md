@@ -11,11 +11,17 @@
     -docker-compose > 1.19
 
 ### Main Host Directory structure :
+
 -docker : docker-compose file and saved images
+
 -Workspace : volumen mapedo del host al contenedor
+
     src :  todos los archivos fuentes del proyecto
+
     datasets : 
+
     pickle_saves : guardado de codificaciones de imagenes y de texto, entre otros
+
     checkpoints :   guardado de entrenamiendo de modelos
 
 ## installation of docker-compose 1.27.1 : 
