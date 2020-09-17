@@ -1,16 +1,16 @@
-#Run in Docker Guide :  tensorflow-gpu 2.0 + cuda + jupyter for Deep Learning use
+# Run in Docker Guide :  tensorflow-gpu 2.0 + cuda + jupyter for Deep Learning use
 
 ## Agrega el usuario al grupo docker para evitar correr con sudo
 
     sudo usermod -aG docker $USER
 
-###Requiriments in Host: 
+### Requiriments in Host: 
     -Nvidia Drivers
     -docker
     -nvidia-docker2
     -docker-compose > 1.19
 
-###Main Host Directory structure :
+### Main Host Directory structure :
 -docker : docker-compose file and saved images
 -Workspace : volumen mapedo del host al contenedor
     src :  todos los archivos fuentes del proyecto
