@@ -53,6 +53,8 @@ with open(pickle_tokenizer_path, 'rb') as handle:
     tokenizer = pickle.load(handle)
 
 
+
+
 # PARAMETROS DEL SISTEMA
 
 BATCH_SIZE = 64
@@ -69,7 +71,8 @@ attention_features_shape = 64
 # Cargo el modelo InceptionV3 ya entrenado con el dataset de 'imagenet'
 image_model = tf.keras.applications.InceptionV3(include_top=False,
                                                 weights='imagenet')
-                              
+
+                                
 new_input = image_model.input # guardo la capa input
 hidden_layer = image_model.layers[-1].output  # guardo capa output
 
