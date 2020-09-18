@@ -9,7 +9,7 @@ from glob import glob
 import pickle
 from PIL import Image
 
-## -----------------------------------------
+## Codificador de imagenes : Codifica imagenes y las guarda en 'encoded_image_path'
 
 ## ----- PATHS variables
 
@@ -193,7 +193,7 @@ def generate_embedding(image):
     img_tensor_val = tf.reshape(img_tensor_val, (img_tensor_val.shape[0], -1, img_tensor_val.shape[3]))
     #print(img_tensor_val)
     
-    features = encoder(img_tensor_val)  # aplico modelo y obtengo la codificacion de la imagen (feature)
+    features = encoder(img_tensor_val)  # aplico modelo del codificador y obtengo la codificacion de la imagen (feature)
     #print(features.shape)
 
     # Guardo la feature de la imagen en encoded_image_path .  
@@ -232,7 +232,7 @@ for file_img in file_arr:
 # Carga una imagen codificada por img_id   --- agregado
 image_prefix = "COCO_train2014_"
 def load_encoded_caption(img_id):
-  with open(encoded_image_path + image_prefix + '%012d.emb' % (img_id) , 'rb') as handle:
+  with open("/workspace/"+ image_prefix + '%012d.emb' % (img_id) , 'rb') as handle:
     return pickle.load(handle)
 encoded_image_9 = load_encoded_caption(9)
 print(encoded_image_9)

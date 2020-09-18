@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
-
 import unicodedata
 import re
 import numpy as np
@@ -12,14 +11,13 @@ import os
 import io
 import time
 import sys
-
 import json
 from glob import glob
 from PIL import Image
 import pickle
 import glob
 
-## -----------------------------------------
+## Compara las codificaciones de las imagenes con las de las captions ?
 
 max_length_set = 49                     # tamanio del conjunto
 annotation_folder = '/annotations/'     # directorio de annotation

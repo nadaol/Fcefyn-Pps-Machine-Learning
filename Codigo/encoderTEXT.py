@@ -19,7 +19,7 @@ from glob import glob
 from PIL import Image
 import pickle
 
-## Evaluación del codificador de texto . Almacena las salidas en encoded_captions_path.
+## Codificador de texto : Codifica texto y lo almacena en 'encoded_captions_path'.
 
 # Funcion para calcular tamaño maximo de los elementos t de tensor
 def calc_max_length(tensor):
@@ -103,6 +103,8 @@ output_units = 512
 output_size = 16384
 vocab_inp_size = top_k + 1 # ojooo
 
+
+# No tiene atencion?
 class Encoder(tf.keras.Model):
   def __init__(self, vocab_size, embedding_dim, enc_units, enc_output_units,batch_sz):
     super(Encoder, self).__init__()
@@ -115,7 +117,7 @@ class Encoder(tf.keras.Model):
                                    return_state=True,
                                    recurrent_initializer='glorot_uniform')  # capa GRU
     self.cnn1 = tf.keras.layers.Conv1D(256, 4, activation='relu',input_shape = [49, 1024])  # capa Convolucional
-    self.fc = tf.keras.layers.Dense(enc_output_units)   # FC1 - Dense 
+    self.fc = tf.keras.layers.Dense(enc_output_units,act)   # FC1 - Dense ------(if no activation is specified it uses linear)
   
 
   def call(self, x, hidden):
@@ -124,6 +126,7 @@ class Encoder(tf.keras.Model):
     cnn1out = self.cnn1(output_gru) # capa CNN
     flat_vec = tf.reshape(cnn1out,[cnn1out.shape[0],cnn1out.shape[1]*cnn1out.shape[2]]) # Flattened
     output = self.fc(flat_vec)   # capa densa de salida - FC
+    output = tf.nn.relu(output) #ver si reduce el error
     return output, state
 
 # Inicio hidden state todo en cero

@@ -13,40 +13,45 @@ import os
 import io
 import time
 import sys
-
 import json
 from glob import glob
 from PIL import Image
 import pickle
 
-## -------
+## Entrena el mismo modelo de encoderTEXT
 
-### Tamano maximo de cada caption
+# Funcion para calcular el tamaño maximo de los elementos t de tensor
 def calc_max_length(tensor):
     return max(len(t) for t in tensor)
 
-## Descarga de annotations
-annotation_folder = '/annotations/'
-annotation_file = os.path.abspath('.') +'/annotations/captions_train2014.json'
+# Path para la lectura de las annotations
+annotation_folder = '/workspace/datasets/COCO/annotations'
+annotation_file = annotation_folder + '/captions_train2014.json'
 
-# Descarga de imagenes
-image_folder = '/img_embeddings/'
-PATH = os.path.abspath('.') + image_folder
+# Path para la lectura de las imagenes
+image_folder = "/workspace/datasets/COCO/train2014/"    
+image_prefix = "COCO_train2014_'"
+
+# Path para cargar el tokenizer
+pickle_tokenizer_path = '/workspace/pickle_saves/tokenizer/tokenizer.pickle'
+
+# Defino path para guardar checkpoint del modelo encoderText
+checkpoint_path = '/workspace/checkpoints/text_encoder/'
 
 # Lectura de annotations
 with open(annotation_file, 'r') as f:
     annotations = json.load(f)
 
-## Guardo captions e imagenes
+## Cargado de captions y path de las imagenes correspondientes
 all_captions = []
 all_img_name_vector = []
 
 for annot in annotations['annotations']:
-    caption = '<start> ' + annot['caption'] + ' <end>'  # codifico captions con token inicio fin y anotations
-    image_id = annot['image_id'] # obtengo id del annotation
-    full_coco_image_path = PATH + 'COCO_train2014_' + '%012d' % (image_id) # guardo path con full nombre
+    caption = '<start> ' + annot['caption'] + ' <end>'  # Parseo annotations agregando simbolos de inicio y fin .
+    image_id = annot['image_id']                        # obtengo id de la imagen correspondiente al caption
+    full_coco_image_path = image_folder + image_prefix + '%012d' % (image_id) # guardo el path completo donde se encuentra la imagen correspondiente
 
-    all_img_name_vector.append(full_coco_image_path)  # Guardo imagen
+    all_img_name_vector.append(full_coco_image_path)  # Guardo pth de la imgen
     all_captions.append(caption)                      # Guardo respectivo caption
 
 # Mezclado de captions e imagenes 
@@ -54,34 +59,34 @@ train_captions, img_name_vector = shuffle(all_captions,
                                           all_img_name_vector,
                                           random_state=1)
 
-# Seleccionar "num_examples" de datos
+# Limitar a num_example el set de captions-imágenes (414113 captions en total) para luego usar en el entrenamiento
 num_examples = 80000
 train_captions = train_captions[:num_examples]
 img_name_vector = img_name_vector[:num_examples]
 print (len(train_captions), len(all_captions))
 
-# Elijo "k" palabras del vocabulario
+# Limite del vocabulario a k palabras.
 top_k = 5000
 
-## Obtenemos tokenizer
-with open('./tokenizer_new/tokenizer.pickle', 'rb') as handle:
+# Obtenemos tokenizer para dividir las captions en palabras
+with open(pickle_tokenizer_path, 'rb') as handle:
     tokenizer = pickle.load(handle)
 
-# Creamos vectores con tokens
-train_seqs = tokenizer.texts_to_sequences(train_captions)
+# Obtengo la lista que representan las captions (num_examples captions)
+# train_captions[0] = <start> A very clean and well decorated empty bathroom <end>
+train_captions = tokenizer.texts_to_sequences(train_captions)
+# train_captions[0] = -> [3, 2, 136, 491, 10, 622, 430, 271, 58, 4]
 
-# Aplicamos pad a cada vector (en post)
-cap_vector = tf.keras.preprocessing.sequence.pad_sequences(train_seqs, padding='post')
+# Aplico padding a las captions , para obtener captions (np array , shape (80000 , 49) ) con tamaño fijo = max_length
+cap_vector = tf.keras.preprocessing.sequence.pad_sequences(train_captions,padding='post')
 
-# Preparamos batch de imagenes, obtengo vector de imagenes
-def load_image(image_path):
-    img = tf.io.read_file(image_path)
-    return img, image_path    
+#all_captions [0] = [  3   2 136 491  10 622 430 271  58   4   0   0  ....  0   0   0   0   0   0   0   0   0   0   0   0]
     
-# Obtengo tamanio max de los train_seqs
-max_length = calc_max_length(train_seqs) 
+# Obtengo tamanio max de los train_seqs (49)
+max_length = calc_max_length(cap_vector)  
 
-# Creamos sets de train y validacion con 80/20
+
+# Separamos image_name_vector (paths de las imagenes) y cap_vector (captions correspondientes) para entrenamiento 80% y evaluación 20%. ver que la division sea igual al de la evaluacion (en encoderTEXT)
 img_name_train, img_name_val, cap_train, cap_val = train_test_split(img_name_vector,
                                                                     cap_vector,
                                                                     test_size=0.2,
@@ -95,27 +100,27 @@ steps_per_epoch = len(img_name_train)//BATCH_SIZE
 embedding_dim = 256
 units = 1024
 output_units = 512
-output_size = 16384
+output_size = 16384   # Dimensión del tensor de salida del codificador de texto
 vocab_inp_size = top_k + 1 #### OJO
 
-## Cargo tensores de imagen
+## Funcion ,retorna el tensor que representa una imagen (previamente guardada en formato .npy)
 def map_func(img_name, cap):
   img_tensor = np.load(img_name.decode('utf-8')+'.npy')
   return img_tensor, cap
 
-# Cargo dataset con imagenes y captions con las dimensiones de cada uno
+# Creo el dataset con el path de las imagenes y los captions de entrenamiento (img_name_train, cap_train)
 dataset = tf.data.Dataset.from_tensor_slices((img_name_train, cap_train))
 
-# Cargar numpy
+# Cargar numpy 
 dataset = dataset.map(lambda item1, item2: tf.numpy_function(
           map_func, [item1, item2], [tf.float32, tf.int32]),
           num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
-# Mezclar y dividir en batches
+# Mezcla el dataset y lo divide en batchses 'BATCH_SIZE' para entrenar.
 dataset = dataset.shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
 dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE) # optimizado para la operacion
 
-## ENCODER
+## Clase del modelo ENCODER (igual al encoderTEXT)
 
 class Encoder(tf.keras.Model):
   def __init__(self, vocab_size, embedding_dim, enc_units, enc_output_units,batch_sz):
@@ -140,39 +145,36 @@ class Encoder(tf.keras.Model):
     output = tf.nn.relu(output) 
     return output, state
 
-# Inicio hidden state todo en cero
+# Funcion para iniciar hidden state todo en cero
   def initialize_hidden_state(self):
     return tf.zeros((self.batch_sz, self.enc_units))
 
 # Imprimo parametros configurados del encoder
 print("Parametros encoder",vocab_inp_size, embedding_dim, units, output_size, BATCH_SIZE)
 
-# EJECUTAR ENCODER
+# instancio el modelo ENCODER
 encoder = Encoder(vocab_inp_size, embedding_dim, units, output_size, BATCH_SIZE)
 
 # Agrego optimizador Adam para gradiente
 optimizer = tf.keras.optimizers.Adam()
 
-# Calculo MSE
+# Creo objeto para calcular la perdida del tipo MSE (distancia euclidiana)
 loss_object = tf.keras.losses.MeanSquaredError()
 
-## Funcion de perdida
+## Funcion de calculo de la perdida segun tensor real y predecido
 def loss_function(real, pred):
-
   loss_ = loss_object(real, pred)
   return tf.reduce_mean(loss_)
  
-# Defino path para guardar checkpoint
-checkpoint_path = './ckk_pru'
 # Creamos checkpoints para guardar modelo y optimizador 
 ckpt = tf.train.Checkpoint(encoder = encoder,
                            optimizer = optimizer)
 # Establezco el checkpoint manager a usar (limite para 5 ultimos checkpoints)
 ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
 
-start_epoch = 0 # contador
+start_epoch = 0 # contador de repeticiones de entrenamiento
 
-if ckpt_manager.latest_checkpoint: # si existen checkpoints
+if ckpt_manager.latest_checkpoint: # checkeo si existen checkpoints
   start_epoch = int(ckpt_manager.latest_checkpoint.split('-')[-1]) # 
   # restoring the latest checkpoint in checkpoint_path
   ckpt.restore(ckpt_manager.latest_checkpoint)  # cargo el ultimo checkpoint disponible                     
@@ -193,6 +195,7 @@ def train_step(inp, targ, enc_hidden):
 
   return batch_loss,enc_output  
 
+#entrenamiento
 EPOCHS = 500
 print( "v41")
 for epoch in range(EPOCHS):
@@ -204,7 +207,7 @@ for epoch in range(EPOCHS):
     #verrr
     enc_hidden = encoder.initialize_hidden_state()
     batch_loss,res = train_step(cap, targ, enc_hidden)
-    print(res[50].numpy())
+    print(res[50].numpy())  #imprime un elemento cualquiera del tensor del caption con el valor real del target para comparar
     print(targ[50].numpy())
     sys.exit()
 
@@ -216,7 +219,7 @@ for epoch in range(EPOCHS):
                                                    batch_loss.numpy()))  
 
   if epoch % 2 == 0:
-      ckpt_manager.save()   ## almaceno checkpoint
+      ckpt_manager.save()   ## almaceno checkpoint cada 2 epoch's
   print('Epoch {} Loss {:.4f}'.format(epoch + 1,
                                       total_loss / steps_per_epoch))
   print('Time taken for 1 epoch {} sec\n'.format(time.time() - start))

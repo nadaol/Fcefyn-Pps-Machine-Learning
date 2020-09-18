@@ -15,50 +15,57 @@ from PIL import Image
 import pickle
 import sys
 
-## -------
+## Entrena el modelo de encoderIMAGE
 
-## Descarga de annotations
-annotation_folder = '/annotations/'
+# Path para la lectura de las annotations
+annotation_folder = '/workspace/datasets/COCO/annotations'
+annotation_file = annotation_folder + '/captions_train2014.json'
+
+# Path para la lectura de las imagenes
+image_folder = "/workspace/datasets/COCO/train2014/"  
+
+# Path para guardar las imagenes preprocesadas con InceptionV3
+prepro_images_folder = "/workspace/datasets/COCO/train2014_nptensors/"  
+
+# Prefijo de las imagenes
+image_prefix = 'COCO_train2014_'
+
+# Path para guardar el tokenizer
+pickle_tokenizer_path = '/workspace/pickle_saves/tokenizer/tokenizer.pickle'
+
+# Path para guardar los checkpoints del modelo 
+checkpoint_path = "/workspace/checkpoints/image_encoder_decoder/"  
 
 # Descargo annotations
 ## Si no existe
-if not os.path.exists(os.path.abspath('.') + annotation_folder):
+if not os.path.exists(annotation_file):
   annotation_zip = tf.keras.utils.get_file('captions.zip',
                                           cache_subdir=os.path.abspath('.'),
                                           origin = 'http://images.cocodataset.org/annotations/annotations_trainval2014.zip',
                                           extract = True)
-  annotation_file = os.path.dirname(annotation_zip)+'/annotations/captions_train2014.json'
   os.remove(annotation_zip)
-## Si existe
-else:
-  annotation_file = os.path.abspath('.') +'/annotations/captions_train2014.json'
 
-image_folder = '/train2014/' # Establezco path para imagenes
-
-if not os.path.exists(os.path.abspath('.') + image_folder): # si no existe path con imagenes, descargo
+if not os.path.exists(image_folder): # si no existe path con imagenes, descargo
   image_zip = tf.keras.utils.get_file('train2014.zip',
                                       cache_subdir=os.path.abspath('.'),
                                       origin = 'http://images.cocodataset.org/zips/train2014.zip',
                                       extract = True)
-  PATH = os.path.dirname(image_zip) + image_folder
   os.remove(image_zip)
-else: # si existe,
-  PATH = os.path.abspath('.') + image_folder
 
-# Cargo annotations e
+# Lectura de annotations
 with open(annotation_file, 'r') as f:
     annotations = json.load(f)
 
-# Guardo captions e imagenes
+## Cargado de captions y path de las imagenes correspondientes
 all_captions = []
 all_img_name_vector = []
 
 for annot in annotations['annotations']:
-    caption = '<start> ' + annot['caption'] + ' <end>' # codifico captions con token inicio fin y anottations
-    image_id = annot['image_id']  # obtengo id del annotation
-    full_coco_image_path = PATH + 'COCO_train2014_' + '%012d.jpg' % (image_id)  # guardo path con full nombre
+    caption = '<start> ' + annot['caption'] + ' <end>' # Parseo annotations agregando simbolos de inicio y fin .
+    image_id = annot['image_id']                        # obtengo id de la imagen correspondiente al caption
+    full_coco_image_path = image_folder + image_prefix + '%012d.jpg' % (image_id) # guardo el path completo donde se encuentra la imagen correspondiente
 
-    all_img_name_vector.append(full_coco_image_path)  # Guardo imagen
+    all_img_name_vector.append(full_coco_image_path)  # Guardo el path imagen
     all_captions.append(caption)                      # Guardo respectivo caption
 
 # Mezclado de captions e imagenes 
@@ -66,40 +73,44 @@ train_captions, img_name_vector = shuffle(all_captions,
                                           all_img_name_vector,
                                           random_state=1)
 
-# Seleccionar "num_examples" de datos
-num_examples = 80000
+# Limitar a num_examples captions-imagenes (414113 captions en total) para luego usar en el entrenamiento
+#num_examples = 80000
+num_examples = 10
 train_captions = train_captions[:num_examples]
 img_name_vector = img_name_vector[:num_examples]
 print (len(train_captions), len(all_captions))
 
-# Obtengo vector de imagenes
+# Retorna la imagen image_path reducida ( shape = 299,299,3 ) y normalizada para luego utilizarla como input del inceptionV3
 def load_image(image_path):
-    img = tf.io.read_file(image_path)
-    img = tf.image.decode_jpeg(img, channels=3) # decodificacion en RGB
-    img = tf.image.resize(img, (299, 299)) # ajusto tamanio
-    img = tf.keras.applications.inception_v3.preprocess_input(img) # preprocesado con InceptionV3
-    return img, image_path
+    img_preprocessed = tf.io.read_file(image_path)
+    img_preprocessed = tf.image.decode_jpeg(img_preprocessed, channels=3) # decodificacion en RGB
+    img_preprocessed = tf.image.resize(img_preprocessed, (299, 299)) # ajusto tamanio
+    img_preprocessed = tf.keras.applications.inception_v3.preprocess_input(img_preprocessed) # preprocesado con InceptionV3
+    return img_preprocessed , image_path
 
-# Obtener modelo InceptionV3 
+# Cargo el modelo InceptionV3 ya entrenado con el dataset de 'imagenet'
 image_model = tf.keras.applications.InceptionV3(include_top=False,
                                                 weights='imagenet')
 
 new_input = image_model.input   # guardo la capa input
 hidden_layer = image_model.layers[-1].output # guardo capa output
 
-# Obtengo modelo
+# Obtengo el modelo para usar en el codificador de imagen
 image_features_extract_model = tf.keras.Model(new_input, hidden_layer)
 
-# Obtengo imagenes en orden ascendente por nombre
+# Obtengo path de imagenes en orden ascendente por nombre (igual que ordenar por image_id) ... ordena lo que había mezclado ...
 encode_train = sorted(set(img_name_vector))
 
-# Cargo dataset de imagenes
+# Creo el dataset con el path de las imagenes ordenado
 image_dataset = tf.data.Dataset.from_tensor_slices(encode_train)
+# Divide el dataset por batches
 image_dataset = image_dataset.map(
   load_image, num_parallel_calls=tf.data.experimental.AUTOTUNE).batch(16)
 
+
+#Obtiene codificación de la imagen y le hace el reshape (no habíamos obtenido ya la codificaciones de las imagenes con encoderIMAGE ?)
 for img, path in image_dataset:
-  batch_features = image_features_extract_model(img)
+  batch_features = image_features_extract_model(img)#Toma las imagenes presprocesadas y las pasa por el inceptionV3
   batch_features = tf.reshape(batch_features,
                               (batch_features.shape[0], -1, batch_features.shape[3])) # cambio dimension
 
@@ -107,36 +118,36 @@ for img, path in image_dataset:
     path_of_feature = p.numpy().decode("utf-8") 
     np.save(path_of_feature, bf.numpy())  #guardo batch features en un zip
 
-# Maximo tamanio de caption 
+
+# Funcion para calcular el tamaño maximo de los elementos t de tensor
 def calc_max_length(tensor):
     return max(len(t) for t in tensor)
 
-# Numero de palabras del vocabulario
+# Limite del vocabulario a k palabras.
 top_k = 5000
-# Obtener enteros a partir de texto
+# Obtenemos tokenizer para dividir las captions en palabras
 tokenizer = tf.keras.preprocessing.text.Tokenizer(num_words=top_k,
                                                   oov_token="<unk>",
                                                   filters='!"#$%&()*+.,-/:;=?@[\]^_`{|}~ ')
 tokenizer.fit_on_texts(train_captions)
-train_seqs = tokenizer.texts_to_sequences(train_captions) # obtengo secuencia de enteros que matchean a texto
 
 tokenizer.word_index['<pad>'] = 0     # defino valor para pad
 tokenizer.index_word[0] = '<pad>'
 
-# elimino ciertos elementos
-with open('./tokenizer_new/tokenizer.pickle', 'wb') as handle:
+# Guardo el tokenizer creado
+with open(pickle_tokenizer_path , 'wb') as handle:
     pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 # Crear vectores tokenizados
-train_seqs = tokenizer.texts_to_sequences(train_captions)
+train_seqs = tokenizer.texts_to_sequences(train_captions) # obtengo secuencia de enteros que matchean las captions (num_examples captions)...segunda vez
 
-# Agrego padding
+# Aplico padding a las captions , para obtener captions (np array , shape (80000 , 49) ) con tamaño fijo = max_length
 cap_vector = tf.keras.preprocessing.sequence.pad_sequences(train_seqs, padding='post')
 
-# Calculo tamanio maximo de cada secuencia. Usado para pesos
+# Obtengo tamanio max de los train_seqs (49)
 max_length = calc_max_length(train_seqs)
 
-# Separacion de conjuntos de entrenamiento y prueba
+# Separacion de conjuntos de entrenamiento y prueba (ver que el conjunto que la division coincida cuando se evalua el modelo en encoderIMAGE
 img_name_train, img_name_val, cap_train, cap_val = train_test_split(img_name_vector,
                                                                     cap_vector,
                                                                     test_size=0.2,
@@ -161,7 +172,7 @@ def map_func(img_name, cap):
   img_tensor = np.load(img_name.decode('utf-8')+'.npy')
   return img_tensor, cap
 
-# Cargo dataset con imagenes y captions con las dimensiones de cada uno
+# Creo el dataset con el path de las imagenes y los captions de entrenamiento (img_name_train, cap_train)
 dataset = tf.data.Dataset.from_tensor_slices((img_name_train, cap_train))
 
 # Carga en paralelo
@@ -169,9 +180,11 @@ dataset = dataset.map(lambda item1, item2: tf.numpy_function(
           map_func, [item1, item2], [tf.float32, tf.int32]),
           num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
-# Mezcla los datos y divide en batches
+# Mezcla el dataset y lo divide en batchses 'BATCH_SIZE' para entrenar.
 dataset = dataset.shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
 dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+
+#Modelo del encoder-decoder de imagenes-texto
 
 class BahdanauAttention(tf.keras.Model):
   def __init__(self, units):
@@ -269,8 +282,6 @@ def loss_function(real, pred):
 
   return tf.reduce_mean(loss_)
 
-checkpoint_path = "./checkpoints_newnew/train"  # Defino path para guardar checkpoint
-
 ckpt = tf.train.Checkpoint(encoder=encoder,
                            decoder=decoder,
                            optimizer = optimizer) # Creamos checkpoints para guardar modelo y optimizador 
@@ -316,11 +327,13 @@ def train_step(img_tensor, target):
 
   gradients = tape.gradient(loss, trainable_variables) # computo gradiente
 
-  optimizer.apply_gradients(zip(gradients, trainable_variables))  # Aplico gradiente
+  optimizer.apply_gradients(zip(gradients, trainable_variables))  # Aplico gradiente para ajustar los parametros del modelo
 
   return loss, total_loss
 
 EPOCHS = 100
+
+# Entrenamiento del encoder/decoder Image
 
 for epoch in range(start_epoch, EPOCHS):
     start = time.time() # inicio cuenta de tiempo
@@ -389,6 +402,8 @@ def plot_attention(image, result, attention_plot):
 
     plt.tight_layout()
     plt.show()    # muestro plot
+
+# Compara con imagenes específicas las captions real y obtenida
 
 # captions on the validation set
 rid = np.random.randint(0, len(img_name_val))
