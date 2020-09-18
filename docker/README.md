@@ -14,7 +14,7 @@
 
 -docker : docker-compose file and saved images
 
--Workspace : volumen mapedo del host al contenedor
+-Workspace : volumen mapeado del host al contenedor
 
     src :  todos los archivos fuentes del proyecto
 

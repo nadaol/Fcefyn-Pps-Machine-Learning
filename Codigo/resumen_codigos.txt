@@ -1,0 +1,52 @@
+1) comparer.py
+    Comparo texto vs imagen
+    Defino tensor de texto
+        INPUT = annotations e imagenes
+        OUTPUT = error MSE y vector de comparacion texto vs imagen
+
+2) comparerREves.py
+    Comparo imagen vs texto
+    Defino tensor de imagen
+        INPUT =  imagenes y annotations
+        OUTPUT = error MSE y vector de comparacion imagen vs texto
+
+3) encoderIMAGE.py
+    Uso de InceptionV3 para pretratamiento de imagenes
+    Modelo embedding - encoder CNN - decoder RNN con atencion
+    Guardado y recupero de checkpoints de resultados del encoder/decoder/optimizador
+        INPUT =  imagenes
+        OUTPUT = imagenes codificadas
+        
+4) encoderTEXT.py
+    Tratamiento de texto y obtencion de secuencias
+    Modelo embedding - encoder CNN
+    Guardado y recupero de checkpoints de resultados del encoder
+    /optimizador
+        INPUT =  annotations
+        OUTPUT = captions codificados
+
+5) new_captioner.py
+    Carga de vector de imagenes y captions 
+    Uso de InceptionV3 para pretratamiento de imagenes
+    Mapeo de dataset
+    Modelo encoder CNN - decoder RNN con embedding y atencion
+        y optimizador
+    Guardado de checkpoints
+    Entrenamiento de Modelo
+    Obtencion de loss 
+    Evaluacion
+    Comparacion entre caption obtenido y esperado
+        y visualizacion de imagen
+        INPUT =  annotations, imagenes
+        OUTPUT = captions finales   
+
+5) trainerwithcaptionsv41.py
+    Division en set train y validation
+    Mapeo de dataset
+    Solo Modelo embedding, ENCODER CNN
+    Obtencion de loss
+    Guardado de checkpoints
+    Entrenamiento
+        y optimizador
+        INPUT = annotations e imagenes
+        OUTPUT = modelo entrenado
