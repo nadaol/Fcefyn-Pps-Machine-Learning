@@ -1,4 +1,4 @@
-<img src="https://drive.google.com/uc?export=view&id=1fBDbTvato9MGgCJ-yMGF_cw-f8K1AZ3K" title="Facultad de ciencias exáctas físicas y naturales" width="200" img align="right"/>
+<img src="https://drive.google.com/uc?export=view&id=1fBDbTvato9MGgCJ-yMGF_cw-f8K1AZ3K" title="Facultad de Ciencias Exactas Físicas y Naturales" width="200" img align="right"/>
 
 ## Practica Profesional Supervisada
 
