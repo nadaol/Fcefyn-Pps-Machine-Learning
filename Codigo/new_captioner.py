@@ -18,14 +18,14 @@ import sys
 ## Entrena el modelo de encoderIMAGE
 
 # Path para la lectura de las annotations
-annotation_folder = '/workspace/datasets/COCO/annotations'
-annotation_file = annotation_folder + '/captions_train2014.json'
+annotation_folder = '/workspace/datasets/COCO/annotations/'
+annotation_file = annotation_folder + 'captions_train2014.json'
 
 # Path para la lectura de las imagenes
 image_folder = "/workspace/datasets/COCO/train2014/"  
 
 # Path para guardar las imagenes preprocesadas con InceptionV3
-prepro_images_folder = "/workspace/datasets/COCO/train2014_nptensors/"  
+prepro_images_folder = "/workspace/pickle_saves/preprocessed_IncV3_images/"  
 
 # Prefijo de las imagenes
 image_prefix = 'COCO_train2014_'
@@ -73,9 +73,11 @@ train_captions, img_name_vector = shuffle(all_captions,
                                           all_img_name_vector,
                                           random_state=1)
 
+                                          
+
 # Limitar a num_examples captions-imagenes (414113 captions en total) para luego usar en el entrenamiento
 #num_examples = 80000
-num_examples = 10
+num_examples = 800000
 train_captions = train_captions[:num_examples]
 img_name_vector = img_name_vector[:num_examples]
 print (len(train_captions), len(all_captions))
@@ -98,15 +100,18 @@ hidden_layer = image_model.layers[-1].output # guardo capa output
 # Obtengo el modelo para usar en el codificador de imagen
 image_features_extract_model = tf.keras.Model(new_input, hidden_layer)
 
-# Obtengo path de imagenes en orden ascendente por nombre (igual que ordenar por image_id) ... ordena lo que había mezclado ...
-encode_train = sorted(set(img_name_vector))
 
+# Caching the inceptionV3 encoded images
+
+# Obtengo path de imagenes en orden ascendente por nombre (igual que ordenar por image_id) ,ordena para cachear,el train_captions,img_name_vector es el mezclado
+encode_train = sorted(set(img_name_vector)) # max 82783 images
+
+print("Number of Images for caching % d \n" % (len(encode_train)))
 # Creo el dataset con el path de las imagenes ordenado
 image_dataset = tf.data.Dataset.from_tensor_slices(encode_train)
 # Divide el dataset por batches
 image_dataset = image_dataset.map(
   load_image, num_parallel_calls=tf.data.experimental.AUTOTUNE).batch(16)
-
 
 #Obtiene codificación de la imagen y le hace el reshape (no habíamos obtenido ya la codificaciones de las imagenes con encoderIMAGE ?)
 for img, path in image_dataset:
@@ -114,11 +119,14 @@ for img, path in image_dataset:
   batch_features = tf.reshape(batch_features,
                               (batch_features.shape[0], -1, batch_features.shape[3])) # cambio dimension
 
-  for bf, p in zip(batch_features, path):
+  # Batch of features (BATCH_SIZE, 64, 2048)
+  #Une la lista de ´'BATCH_SIZE' imagenes preprocesadas (con el inceptionV3) con el path de la imagen y la guarda en path (individalmente a cada imagen del batch)
+  for bf, p in zip(batch_features, path):   #zip une varias listas en un unico diccionario
     path_of_feature = p.numpy().decode("utf-8") 
-    np.save(path_of_feature, bf.numpy())  #guardo batch features en un zip
+    image_id = np.char.rpartition(np.char.rpartition(path_of_feature,'_')[2],'.')[0]
+    np.save(prepro_images_folder + image_prefix + image_id , bf.numpy())  #guardo batch features en un zip
 
-
+""" 
 # Funcion para calcular el tamaño maximo de los elementos t de tensor
 def calc_max_length(tensor):
     return max(len(t) for t in tensor)
@@ -427,3 +435,4 @@ plot_attention(image_path, result, attention_plot)
 Image.open(image_path)
 
 
+ """
