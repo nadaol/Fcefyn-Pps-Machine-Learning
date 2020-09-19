@@ -18,9 +18,9 @@
 
     src :  todos los archivos fuentes del proyecto
 
-    datasets : 
+    datasets : COCO dataset , imagenes y annotations.
 
-    pickle_saves : guardado de codificaciones de imagenes y de texto, entre otros
+    pickle_saves : guardado de codificaciones de imagenes y de texto, imagenes preprocesadas con inception v3 y tokenizer .
 
     checkpoints :   guardado de entrenamiendo de modelos
 
