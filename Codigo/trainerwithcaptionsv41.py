@@ -46,6 +46,9 @@ with open(annotation_file, 'r') as f:
 all_captions = []
 all_img_name_vector = []
 
+#Sort annotations by image_id ----- agregado
+annotations['annotations'] = sorted(annotations['annotations'], key = lambda i: i['image_id']) 
+
 for annot in annotations['annotations']:
     caption = '<start> ' + annot['caption'] + ' <end>'  # Parseo annotations agregando simbolos de inicio y fin .
     image_id = annot['image_id']                        # obtengo id de la imagen correspondiente al caption
@@ -85,12 +88,17 @@ cap_vector = tf.keras.preprocessing.sequence.pad_sequences(train_captions,paddin
 # Obtengo tamanio max de los train_seqs (49)
 max_length = calc_max_length(cap_vector)  
 
+def cap_seq_to_string(caption_seq):
+  for word_number in caption_seq:
+    print("%s " % tokenizer.index_word[word_number],end='')
 
 # Separamos image_name_vector (paths de las imagenes) y cap_vector (captions correspondientes) para entrenamiento 80% y evaluación 20%. ver que la division sea igual al de la evaluacion (en encoderTEXT)
-img_name_train, img_name_val, cap_train, cap_val = train_test_split(img_name_vector,
-                                                                    cap_vector,
-                                                                    test_size=0.2,
-                                                                    random_state=0)
+TRAIN_PERCENTAGE = 0.8
+train_examples = int (TRAIN_PERCENTAGE*num_examples)
+img_name_train, img_name_val , cap_train, cap_val = img_name_vector[:train_examples] , img_name_vector[train_examples:] , cap_vector[:train_examples] , cap_vector[train_examples:]
+
+print("%s \n" % cap_seq_to_string(cap_val[0]))
+
 
 # Preparacion
 
@@ -111,7 +119,7 @@ def map_func(img_name, cap):
 # Creo el dataset con el path de las imagenes y los captions de entrenamiento (img_name_train, cap_train)
 dataset = tf.data.Dataset.from_tensor_slices((img_name_train, cap_train))
 
-# Cargar numpy 
+# Cargar numpy ya guardado de la imagen codificada en encoderIMAGE
 dataset = dataset.map(lambda item1, item2: tf.numpy_function(
           map_func, [item1, item2], [tf.float32, tf.int32]),
           num_parallel_calls=tf.data.experimental.AUTOTUNE)
@@ -195,7 +203,7 @@ def train_step(inp, targ, enc_hidden):
 
   return batch_loss,enc_output  
 
-#entrenamiento
+#entrenamiento del encoder text
 EPOCHS = 500
 print( "v41")
 for epoch in range(EPOCHS):

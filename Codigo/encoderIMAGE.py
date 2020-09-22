@@ -8,6 +8,8 @@ import json
 from glob import glob
 import pickle
 from PIL import Image
+from sklearn.utils import shuffle
+from sklearn.model_selection import train_test_split
 
 ## Codificador de imagenes : Codifica imagenes y las guarda en 'encoded_image_path'
 
@@ -29,6 +31,8 @@ checkpoint_path = "/workspace/checkpoints/image_encoder_decoder/"
 # Path para guardar la codificacion de las imagenes (features) 
 encoded_image_path = '/workspace/pickle_saves/encoded_images/'
 
+# Prefijo de las imagenes
+image_prefix = 'COCO_train2014_'
 
 all_captions = []
 all_img_name_vector = []
@@ -51,9 +55,6 @@ top_k = 5000
 # Obtenemos tokenizer para dividir las captions en palabras
 with open(pickle_tokenizer_path, 'rb') as handle:
     tokenizer = pickle.load(handle)
-
-
-
 
 # PARAMETROS DEL SISTEMA
 
@@ -80,7 +81,7 @@ hidden_layer = image_model.layers[-1].output  # guardo capa output
 image_features_extract_model = tf.keras.Model(new_input, hidden_layer)
 
 """
-# Retorna en base a una imagen el tensor np ya guardado en 'img_name' que la representa -- No se usa?
+# Retorna en base al path de una imagen la misma preprocesada por inceptionV3 guardada anteriormente -- No se usa?
 def map_func(img_name, cap):
   img_tensor = np.load(img_name.decode('utf-8')+'.npy') 
   return img_tensor, cap """
@@ -181,28 +182,60 @@ ckpt.restore(ckpt_manager.latest_checkpoint)
 
 
 # Codifico la imagen image y la guardo en encoded_image_path .
-def generate_embedding(image):
+def generate_embedding(image_path):
     
     attention_plot = np.zeros((max_length, attention_features_shape))
-    image_file = image_folder + image + ".jpg"   # obtengo nombre el path completo de la imagen
-
+    image_file = image_path +  ".jpg"   # obtengo nombre el path completo de la imagen
     hidden = decoder.reset_state(batch_size=1)
 
     temp_input = tf.expand_dims(load_image(image_file)[0], 0)  # expando dimension de vector de entrada
-    img_tensor_val = image_features_extract_model(temp_input)   # Proceso la imagen con el InceptionV3
+    img_tensor_val = image_features_extract_model(temp_input)  # Proceso la imagen con el InceptionV3
     img_tensor_val = tf.reshape(img_tensor_val, (img_tensor_val.shape[0], -1, img_tensor_val.shape[3]))
     #print(img_tensor_val)
     
     features = encoder(img_tensor_val)  # aplico modelo del codificador y obtengo la codificacion de la imagen (feature)
     #print(features.shape)
-
-    # Guardo la feature de la imagen en encoded_image_path .  
-    with open(encoded_image_path+image+".emb", 'wb') as handle:
+    image_name = image_path.rsplit('/',1)[1]
+    # Guardo la feature de la imagen en encoded_image_path .
+    with open(encoded_image_path+image_name+".emb", 'wb') as handle:
         pickle.dump(features, handle, protocol=pickle.HIGHEST_PROTOCOL)
     return
 
 # Obtengo lista con todos los nombres de los items dentro de image_folder (lista file_arr len = (82783,)) (82783 imagenes)
-file_arr = os.listdir(image_folder)
+
+#file_arr = os.listdir(image_folder)
+
+# Lectura de annotations
+with open(annotation_file, 'r') as f:
+    annotations = json.load(f)
+
+## Cargado de captions y path de las imagenes correspondientes
+all_captions = []
+all_img_name_vector = []
+
+#Sort annotations by image_id ----- agregado
+annotations['annotations'] = sorted(annotations['annotations'], key = lambda i: i['image_id']) 
+
+for annot in annotations['annotations']:  #not in order
+    caption = '<start> ' + annot['caption'] + ' <end>' # Parseo annotations agregando simbolos de inicio y fin .
+    image_id = annot['image_id']                        # obtengo id de la imagen correspondiente al caption
+    full_coco_image_path = image_folder + image_prefix + '%012d.jpg' % (image_id) # guardo el path completo donde se encuentra la imagen correspondiente
+
+    all_img_name_vector.append(full_coco_image_path)  # Guardo el path imagen
+    all_captions.append(caption)                      # Guardo respectivo caption
+
+
+# Mezclado de captions e imagenes (random_state 1)
+train_captions, img_name_vector = shuffle(all_captions,
+                                          all_img_name_vector,
+                                          random_state=1)
+
+
+# Limitar a num_examples captions-imagenes (414113 captions en total)(82783 images) para luego usar en el entrenamiento
+#num_examples = 80000
+num_examples = 80000
+train_captions = train_captions [:num_examples]   # string train captions
+img_name_vector = img_name_vector [:num_examples] # 
 
 """
 # Show image by id   --- agregado
@@ -213,28 +246,38 @@ def show_image(id):
   image.show()
 """
 # Sort images name list alphabetically (same as image_id)
-file_arr = sorted(file_arr)
-print(file_arr[0]) #COCO_train2014_000000000009.jpg
+#file_arr = sorted(file_arr)
+#file_arr = shuffle(file_arr,random_state=1)
 
-""" # Codifica las primeras 128 imagenes y las guarda en encoded_image_path .
-max_count = 127
+#Split train,val dataset
+TRAIN_PERCENTAGE = 0.8
+train_examples = int (TRAIN_PERCENTAGE*num_examples)
+img_name_train, img_name_val  = img_name_vector[:train_examples] , img_name_vector[train_examples:]
+
+print(img_name_val[21])
+print(img_name_val[51])
+
+# Codifica las primeras 128 imagenes y las guarda en encoded_image_path .
+max_count = 64
 counti = 0
-for file_img in file_arr:
-    if (file_img[-4:]==".jpg"):           #checkea que la extensión sea jpg
-        generate_embedding(file_img[:-4]) #codificacion y guardado
+for img_name in img_name_val:
+    if (img_name[-4:]==".jpg"):           #checkea que la extensión sea jpg
+        generate_embedding(img_name[:-4]) #codificacion y guardado
         counti+= 1
+        #print(counti)
         if counti % 100 == 0:
             print (counti)
-        if counti > max_count:
-            break """
+        if counti > max_count-1 :
+            break
         
 
 # Carga una imagen codificada por img_id   --- agregado
-image_prefix = "COCO_train2014_"
-def load_encoded_caption(img_id):
-  with open("/workspace/"+ image_prefix + '%012d.emb' % (img_id) , 'rb') as handle:
+
+def load_encoded_image(img_id):
+  with open(encoded_image_path + image_prefix +'%012d.emb' % (img_id) , 'rb') as handle:
     return pickle.load(handle)
-encoded_image_9 = load_encoded_caption(9)
+
+encoded_image_9 = load_encoded_image(19767)
 print(encoded_image_9)
 
 

@@ -60,7 +60,10 @@ with open(annotation_file, 'r') as f:
 all_captions = []
 all_img_name_vector = []
 
-for annot in annotations['annotations']:
+#Sort annotations by image_id ----- agregado
+annotations['annotations'] = sorted(annotations['annotations'], key = lambda i: i['image_id']) 
+
+for annot in annotations['annotations']:  #not in order
     caption = '<start> ' + annot['caption'] + ' <end>' # Parseo annotations agregando simbolos de inicio y fin .
     image_id = annot['image_id']                        # obtengo id de la imagen correspondiente al caption
     full_coco_image_path = image_folder + image_prefix + '%012d.jpg' % (image_id) # guardo el path completo donde se encuentra la imagen correspondiente
@@ -68,18 +71,18 @@ for annot in annotations['annotations']:
     all_img_name_vector.append(full_coco_image_path)  # Guardo el path imagen
     all_captions.append(caption)                      # Guardo respectivo caption
 
-# Mezclado de captions e imagenes 
+
+# Mezclado de captions e imagenes (random_state 1)
 train_captions, img_name_vector = shuffle(all_captions,
                                           all_img_name_vector,
-                                          random_state=1)
-
+                                          random_state=1)                               
                                           
 
-# Limitar a num_examples captions-imagenes (414113 captions en total) para luego usar en el entrenamiento
+# Limitar a num_examples captions-imagenes (414113 captions en total)(82783 images) para luego usar en el entrenamiento
 #num_examples = 80000
-num_examples = 800000
-train_captions = train_captions[:num_examples]
-img_name_vector = img_name_vector[:num_examples]
+num_examples = 80000
+train_captions = train_captions[:num_examples]   # string train captions
+img_name_vector = img_name_vector[:num_examples] # 
 print (len(train_captions), len(all_captions))
 
 # Retorna la imagen image_path reducida ( shape = 299,299,3 ) y normalizada para luego utilizarla como input del inceptionV3
@@ -102,11 +105,13 @@ image_features_extract_model = tf.keras.Model(new_input, hidden_layer)
 
 
 # Caching the inceptionV3 encoded images
-
+""" 
 # Obtengo path de imagenes en orden ascendente por nombre (igual que ordenar por image_id) ,ordena para cachear,el train_captions,img_name_vector es el mezclado
-encode_train = sorted(set(img_name_vector)) # max 82783 images
 
-print("Number of Images for caching % d \n" % (len(encode_train)))
+encode_train = sorted(set(img_name_vector)) # Crea el set de imagenes no repetidas de img_name_vector y lo guarda en encode_train
+
+print("Number of Images for caching % d \n" % (len(encode_train))) max 82783 images
+
 # Creo el dataset con el path de las imagenes ordenado
 image_dataset = tf.data.Dataset.from_tensor_slices(encode_train)
 # Divide el dataset por batches
@@ -124,10 +129,10 @@ for img, path in image_dataset:
   for bf, p in zip(batch_features, path):   #zip une varias listas en un unico diccionario
     path_of_feature = p.numpy().decode("utf-8") 
     image_id = np.char.rpartition(np.char.rpartition(path_of_feature,'_')[2],'.')[0]
-    np.save(prepro_images_folder + image_prefix + image_id , bf.numpy())  #guardo batch features en un zip
+    np.save(prepro_images_folder + image_prefix + image_id , bf.numpy())  #guardo batch features en un zip """
 
-""" 
-# Funcion para calcular el tamaño maximo de los elementos t de tensor
+
+ # Funcion para calcular el tamaño maximo de los elementos t de tensor
 def calc_max_length(tensor):
     return max(len(t) for t in tensor)
 
@@ -155,15 +160,22 @@ cap_vector = tf.keras.preprocessing.sequence.pad_sequences(train_seqs, padding='
 # Obtengo tamanio max de los train_seqs (49)
 max_length = calc_max_length(train_seqs)
 
-# Separacion de conjuntos de entrenamiento y prueba (ver que el conjunto que la division coincida cuando se evalua el modelo en encoderIMAGE
-img_name_train, img_name_val, cap_train, cap_val = train_test_split(img_name_vector,
-                                                                    cap_vector,
-                                                                    test_size=0.2,
-                                                                    random_state=0)
+def cap_seq_to_string(caption_seq):
+  for word_number in caption_seq:
+    print("%s " % tokenizer.index_word[word_number],end='')
 
-print(len(img_name_train), len(cap_train), len(img_name_val), len(cap_val))
+# Separacion de conjuntos de entrenamiento y prueba (ver que el conjunto que la division coincida cuando se evalua el modelo en encoderIMAGE (random_state 0)
+# img_name_train (64000,) , cap_train(64000) , img_name_val(16000) , cap_val (16000)
 
-# PARAMETROS DEL MODELO
+TRAIN_PERCENTAGE = 0.8
+train_examples = int (TRAIN_PERCENTAGE*num_examples)
+img_name_train, img_name_val , cap_train, cap_val = img_name_vector[:train_examples] , img_name_vector[train_examples:] , cap_vector[:train_examples] , cap_vector[train_examples:]
+
+print("%s \n" % cap_seq_to_string(cap_val[0]))
+
+""" print(len(img_name_train), len(cap_train), len(img_name_val), len(cap_val))
+
+ # PARAMETROS DEL MODELO
 
 BATCH_SIZE = 64
 BUFFER_SIZE = 1000
@@ -432,7 +444,5 @@ result, attention_plot = evaluate(image_path)
 print ('Prediction Caption:', ' '.join(result))
 plot_attention(image_path, result, attention_plot)
 # opening the image
-Image.open(image_path)
-
-
+Image.open(image_path) 
  """
