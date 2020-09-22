@@ -22,7 +22,7 @@
 
     pickle_saves : guardado de codificaciones de imagenes y de texto, imagenes preprocesadas con inception v3 y tokenizer .
 
-    checkpoints :   guardado de entrenamiendo de modelos
+    checkpoints :   guardado de puntos de entrenamiento para ambos modelos
 
 ## installation of docker-compose 1.27.1 : 
     sudo curl -L "https://github.com/docker/compose/releases/download/1.27.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
