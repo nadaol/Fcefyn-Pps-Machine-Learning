@@ -38,7 +38,7 @@ checkpoint_path = '/workspace/checkpoints/text_encoder/'
 pickle_tokenizer_path = '/workspace/pickle_saves/tokenizer/tokenizer.pickle'
 
 # Path para guardar la salida del codificador
-encoded_captions_path = '/workspace/pickle_saves/encoded_captions/'
+encoded_captions_path = '/workspace/pickle_saves/encoded_captions_eval/'
 
 # Lectura de annotations 
 with open(annotation_file, 'r') as f:
@@ -147,8 +147,9 @@ class Encoder(tf.keras.Model):
     cnn1out = self.cnn1(output_gru) # capa CNN
     flat_vec = tf.reshape(cnn1out,[cnn1out.shape[0],cnn1out.shape[1]*cnn1out.shape[2]]) # Flattened
     output = self.fc(flat_vec)   # capa densa de salida - FC
+    output = tf.reshape(output,[64,64,-1]) # ------------------- agregado
     output = tf.nn.relu(output) #ver si reduce el error
-    return output, state
+    return output, state # output shape (16384,) (64,256)
 
 # Inicio hidden state todo en cero
   def initialize_hidden_state(self):
@@ -184,11 +185,13 @@ def evaluate(caption):
 dataset = tf.data.Dataset.from_tensor_slices((cap_val,img_name_val))
 dataset = dataset.batch(BATCH_SIZE) # divido en batch
 dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE) # optimizado para la operacion 
+print("caption [0] : %s \n" %cap_val[0])
 
 #Codifica los captions y los guarda en encoded_captions_path
 text_id = 0
 for (batch,(caption,img_name)) in enumerate(dataset):
     text_encoded_vec = evaluate(caption) # salida del encoder
+    print("caption : %s \n encoded_caption shape : %s \n" % (caption[0],text_encoded_vec[0]))
     for i in range(64): 
       text_id += 1
       print(("i = %d , img_name : %s \n")%(i,img_name[i]))
@@ -197,7 +200,7 @@ for (batch,(caption,img_name)) in enumerate(dataset):
         pickle.dump(text_encoded_vec[i].numpy(), handle, protocol=pickle.HIGHEST_PROTOCOL) 
     if batch % 20==0:
       print("batch",batch)
-    if(batch == 0):       #------------- agregado para codificar solo las primeras 64 captions
+    if(batch == 15):       #------------- agregado para codificar solo hasta el batch x
       break
  
 """ # Carga una caption codificada ,por img_id y text_id  --- agregado

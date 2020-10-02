@@ -142,7 +142,7 @@ class Encoder(tf.keras.Model):
                                    return_state=True,
                                    recurrent_initializer='glorot_uniform') # capa GRU
     self.cnn1 = tf.keras.layers.Conv1D(256, 4, activation='relu',input_shape = [49, 1024]) # capa convolucional
-    self.fc = tf.keras.layers.Dense(enc_output_units) # capa Dense
+    self.fc = tf.keras.layers.Dense(enc_output_units,activation='relu') # capa Dense
 
   def call(self, x, hidden):
     x = self.embedding(x) 
@@ -150,7 +150,7 @@ class Encoder(tf.keras.Model):
     cnn1out = self.cnn1(output_gru)
     flat_vec = tf.reshape(cnn1out,[cnn1out.shape[0],cnn1out.shape[1]*cnn1out.shape[2]])
     output = self.fc(flat_vec)
-    output = tf.nn.relu(output) 
+    #output = tf.nn.relu(output) 
     return output, state
 
 # Funcion para iniciar hidden state todo en cero

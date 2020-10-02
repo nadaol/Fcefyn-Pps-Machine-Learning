@@ -66,7 +66,7 @@ annotations['annotations'] = sorted(annotations['annotations'], key = lambda i: 
 for annot in annotations['annotations']:  #not in order
     caption = '<start> ' + annot['caption'] + ' <end>' # Parseo annotations agregando simbolos de inicio y fin .
     image_id = annot['image_id']                        # obtengo id de la imagen correspondiente al caption
-    full_coco_image_path = image_folder + image_prefix + '%012d.jpg' % (image_id) # guardo el path completo donde se encuentra la imagen correspondiente
+    full_coco_image_path =  image_prefix + '%012d' % (image_id) # guardo el path completo donde se encuentra la imagen correspondiente
 
     all_img_name_vector.append(full_coco_image_path)  # Guardo el path imagen
     all_captions.append(caption)                      # Guardo respectivo caption
@@ -77,6 +77,7 @@ train_captions, img_name_vector = shuffle(all_captions,
                                           all_img_name_vector,
                                           random_state=1)                               
                                           
+
 # Limitar a num_examples captions-imagenes (414113 captions en total)(82783 images) para luego usar en el entrenamiento
 #num_examples = 80000
 num_examples = 80000
@@ -101,15 +102,20 @@ hidden_layer = image_model.layers[-1].output # guardo capa output
 
 # Obtengo el modelo para usar en el codificador de imagen
 image_features_extract_model = tf.keras.Model(new_input, hidden_layer)
-
+""" 
 
 # Caching the inceptionV3 encoded images
-""" 
+ 
 # Obtengo path de imagenes en orden ascendente por nombre (igual que ordenar por image_id) ,ordena para cachear,el train_captions,img_name_vector es el mezclado
 
 encode_train = sorted(set(img_name_vector)) # Crea el set de imagenes no repetidas de img_name_vector y lo guarda en encode_train
 
-print("Number of Images for caching % d \n" % (len(encode_train))) max 82783 images
+print("Number of Images for caching % d \n" % (len(encode_train))) #max 82783 images
+
+for i,image_name in enumerate(encode_train): 
+  encode_train[i] = image_folder + image_name + ".jpg"
+
+print(encode_train[0])
 
 # Creo el dataset con el path de las imagenes ordenado
 image_dataset = tf.data.Dataset.from_tensor_slices(encode_train)
@@ -128,8 +134,8 @@ for img, path in image_dataset:
   for bf, p in zip(batch_features, path):   #zip une varias listas en un unico diccionario
     path_of_feature = p.numpy().decode("utf-8") 
     image_id = np.char.rpartition(np.char.rpartition(path_of_feature,'_')[2],'.')[0]
-    np.save(prepro_images_folder + image_prefix + image_id , bf.numpy())  #guardo batch features en un zip """
-
+    np.save(prepro_images_folder + image_prefix + image_id , bf.numpy())  #guardo batch features en un zip 
+""" 
 
  # Funcion para calcular el tamaño maximo de los elementos t de tensor
 def calc_max_length(tensor):
@@ -172,7 +178,7 @@ img_name_train, img_name_val , cap_train, cap_val = img_name_vector[:train_examp
 
 print("%s \n" % cap_seq_to_string(cap_val[0]))
 
-""" print(len(img_name_train), len(cap_train), len(img_name_val), len(cap_val))
+print(len(img_name_train), len(cap_train), len(img_name_val), len(cap_val))
 
  # PARAMETROS DEL MODELO
 
@@ -188,7 +194,9 @@ attention_features_shape = 64
 
 # Cargo elementos de numpy
 def map_func(img_name, cap):
-  img_tensor = np.load(img_name.decode('utf-8')+'.npy')
+  img_name_decoded = img_name.decode('utf-8')+'.npy'
+  path = prepro_images_folder + img_name_decoded
+  img_tensor = np.load(path)
   return img_tensor, cap
 
 # Creo el dataset con el path de las imagenes y los captions de entrenamiento (img_name_train, cap_train)
@@ -199,7 +207,7 @@ dataset = dataset.map(lambda item1, item2: tf.numpy_function(
           map_func, [item1, item2], [tf.float32, tf.int32]),
           num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
-# Mezcla el dataset y lo divide en batchses 'BATCH_SIZE' para entrenar.
+# Mezcla el dataset y lo divide en batchs de 'BATCH_SIZE' para entrenar.
 dataset = dataset.shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
 dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
@@ -236,7 +244,7 @@ class CNN_Encoder(tf.keras.Model):
 
     def call(self, x):
         x = self.fc(x)    # Fully connected layer
-        x = tf.nn.relu(x) # Aplico RELU
+        x = tf.nn.relu(x) 
         return x
 
 
@@ -249,7 +257,7 @@ class RNN_Decoder(tf.keras.Model):
     self.gru = tf.keras.layers.GRU(self.units,
                                    return_sequences=True,
                                    return_state=True,
-                                   recurrent_initializer='glorot_uniform')  # Capa GRU
+                                   recurrent_initializer='glorot_uniform')  # Capa GRU (tanh modificado)
     self.fc1 = tf.keras.layers.Dense(self.units) # FC1
     self.fc2 = tf.keras.layers.Dense(vocab_size) # FC2
 
@@ -277,7 +285,7 @@ class RNN_Decoder(tf.keras.Model):
 
     # Salida de FC2
     x = self.fc2(x)
-
+   
     return x, state, attention_weights
 
   def reset_state(self, batch_size):
@@ -350,7 +358,9 @@ def train_step(img_tensor, target):
 
   return loss, total_loss
 
-EPOCHS = 100
+EPOCHS = 20
+
+""" 
 
 # Entrenamiento del encoder/decoder Image
 
@@ -368,12 +378,13 @@ for epoch in range(start_epoch, EPOCHS):
     # storing the epoch end loss value to plot later
     loss_plot.append(total_loss / num_steps)
 
-    if epoch % 5 == 0:
+    if epoch % 2 == 0:
       ckpt_manager.save()
 
     print ('Epoch {} Loss {:.6f}'.format(epoch + 1,
-                                         total_loss/num_steps))
+                                         total_loss/num_steps),flush=True)
     print ('Time taken for 1 epoch {} sec\n'.format(time.time() - start))
+""" 
 
 def evaluate(image):
     attention_plot = np.zeros((max_length, attention_features_shape))  # vacio vector
@@ -422,11 +433,12 @@ def plot_attention(image, result, attention_plot):
     plt.tight_layout()
     plt.show()    # muestro plot
 
+
 # Compara con imagenes específicas las captions real y obtenida
 
 # captions on the validation set
 rid = np.random.randint(0, len(img_name_val))
-image = img_name_val[rid]
+image = image_folder + img_name_val[rid] + ".jpg"
 real_caption = ' '.join([tokenizer.index_word[i] for i in cap_val[rid] if i not in [0]])
 result, attention_plot = evaluate(image)
 
@@ -443,5 +455,5 @@ result, attention_plot = evaluate(image_path)
 print ('Prediction Caption:', ' '.join(result))
 plot_attention(image_path, result, attention_plot)
 # opening the image
-Image.open(image_path) 
- """
+Image.open(image_path)
+

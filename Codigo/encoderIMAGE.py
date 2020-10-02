@@ -29,7 +29,7 @@ pickle_tokenizer_path = '/workspace/pickle_saves/tokenizer/tokenizer.pickle'
 checkpoint_path = "/workspace/checkpoints/image_encoder_decoder/"  
 
 # Path para guardar la codificacion de las imagenes (features) 
-encoded_image_path = '/workspace/pickle_saves/encoded_images/'
+encoded_image_path = '/workspace/pickle_saves/encoded_images_eval/'
 
 # Prefijo de las imagenes
 image_prefix = 'COCO_train2014_'
@@ -120,6 +120,7 @@ class CNN_Encoder(tf.keras.Model):
     def call(self, x):
         x = self.fc(x)      # Fully connected layer
         x = tf.nn.relu(x)   # Aplico RELU
+        #print("Feature shape %s \n" % (x.shape)) #(1,64,256)
         return x
 
 class RNN_Decoder(tf.keras.Model):
@@ -254,11 +255,8 @@ TRAIN_PERCENTAGE = 0.8
 train_examples = int (TRAIN_PERCENTAGE*num_examples)
 img_name_train, img_name_val  = img_name_vector[:train_examples] , img_name_vector[train_examples:]
 
-print(img_name_val[21])
-print(img_name_val[51])
-
-# Codifica las primeras 128 imagenes y las guarda en encoded_image_path .
-max_count = 64
+# Codifica las primeras 128 imagenes del set de evaluacion y las guarda en encoded_image_path .
+max_count = 1024
 counti = 0
 for img_name in img_name_val:
     if (img_name[-4:]==".jpg"):           #checkea que la extensión sea jpg
@@ -272,12 +270,12 @@ for img_name in img_name_val:
         
 
 # Carga una imagen codificada por img_id   --- agregado
-
+""" 
 def load_encoded_image(img_id):
   with open(encoded_image_path + image_prefix +'%012d.emb' % (img_id) , 'rb') as handle:
     return pickle.load(handle)
 
 encoded_image_9 = load_encoded_image(19767)
 print(encoded_image_9)
-
+""" 
 
