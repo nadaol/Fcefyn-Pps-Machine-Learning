@@ -36,6 +36,9 @@ pickle_tokenizer_path = '/workspace/pickle_saves/tokenizer/tokenizer.pickle'
 # Path para guardar los checkpoints del modelo 
 checkpoint_path = "/workspace/checkpoints/image_encoder_decoder/"  
 
+#for each 'CHPK_SAVE' epochs saves a checkpoint
+CHPK_SAVE = 4
+
 # Descargo annotations
 ## Si no existe
 if not os.path.exists(annotation_file):
@@ -69,21 +72,14 @@ for annot in annotations['annotations']:  #not in order
     full_coco_image_path =  image_prefix + '%012d' % (image_id) # guardo el path completo donde se encuentra la imagen correspondiente
 
     all_img_name_vector.append(full_coco_image_path)  # Guardo el path imagen
-    all_captions.append(caption)                      # Guardo respectivo caption
-
-
-# Mezclado de captions e imagenes (random_state 1)
-train_captions, img_name_vector = shuffle(all_captions,
-                                          all_img_name_vector,
-                                          random_state=1)                               
+    all_captions.append(caption)                      # Guardo respectivo caption                            
                                           
 
 # Limitar a num_examples captions-imagenes (414113 captions en total)(82783 images) para luego usar en el entrenamiento
-#num_examples = 80000
-num_examples = 80000
-train_captions = train_captions[:num_examples]   # string train captions
-img_name_vector = img_name_vector[:num_examples] # 
-print (len(train_captions), len(all_captions))
+#num_examples/5 ~ num_images
+num_examples = 120000
+all_captions = all_captions[:num_examples]   # string train captions
+all_img_name_vector = all_img_name_vector[:num_examples] # 
 
 # Retorna la imagen image_path reducida ( shape = 299,299,3 ) y normalizada para luego utilizarla como input del inceptionV3
 def load_image(image_path):
@@ -102,20 +98,18 @@ hidden_layer = image_model.layers[-1].output # guardo capa output
 
 # Obtengo el modelo para usar en el codificador de imagen
 image_features_extract_model = tf.keras.Model(new_input, hidden_layer)
-""" 
 
+""" 
 # Caching the inceptionV3 encoded images
  
 # Obtengo path de imagenes en orden ascendente por nombre (igual que ordenar por image_id) ,ordena para cachear,el train_captions,img_name_vector es el mezclado
 
-encode_train = sorted(set(img_name_vector)) # Crea el set de imagenes no repetidas de img_name_vector y lo guarda en encode_train
+encode_train = sorted(set(all_img_name_vector)) # Crea el set de imagenes no repetidas de img_name_vector y lo guarda en encode_train
 
 print("Number of Images for caching % d \n" % (len(encode_train))) #max 82783 images
 
 for i,image_name in enumerate(encode_train): 
   encode_train[i] = image_folder + image_name + ".jpg"
-
-print(encode_train[0])
 
 # Creo el dataset con el path de las imagenes ordenado
 image_dataset = tf.data.Dataset.from_tensor_slices(encode_train)
@@ -123,7 +117,7 @@ image_dataset = tf.data.Dataset.from_tensor_slices(encode_train)
 image_dataset = image_dataset.map(
   load_image, num_parallel_calls=tf.data.experimental.AUTOTUNE).batch(16)
 
-#Obtiene codificación de la imagen y le hace el reshape (no habíamos obtenido ya la codificaciones de las imagenes con encoderIMAGE ?)
+#Obtiene la imagen preprocesada por el inceptionV3 y la guarda en prepro_images_folder
 for img, path in image_dataset:
   batch_features = image_features_extract_model(img)#Toma las imagenes presprocesadas y las pasa por el inceptionV3
   batch_features = tf.reshape(batch_features,
@@ -135,7 +129,7 @@ for img, path in image_dataset:
     path_of_feature = p.numpy().decode("utf-8") 
     image_id = np.char.rpartition(np.char.rpartition(path_of_feature,'_')[2],'.')[0]
     np.save(prepro_images_folder + image_prefix + image_id , bf.numpy())  #guardo batch features en un zip 
-""" 
+ """
 
  # Funcion para calcular el tamaño maximo de los elementos t de tensor
 def calc_max_length(tensor):
@@ -147,7 +141,7 @@ top_k = 5000
 tokenizer = tf.keras.preprocessing.text.Tokenizer(num_words=top_k,
                                                   oov_token="<unk>",
                                                   filters='!"#$%&()*+.,-/:;=?@[\]^_`{|}~ ')
-tokenizer.fit_on_texts(train_captions)
+tokenizer.fit_on_texts(all_captions)
 
 tokenizer.word_index['<pad>'] = 0     # defino valor para pad
 tokenizer.index_word[0] = '<pad>'
@@ -157,13 +151,15 @@ with open(pickle_tokenizer_path , 'wb') as handle:
     pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 # Crear vectores tokenizados
-train_seqs = tokenizer.texts_to_sequences(train_captions) # obtengo secuencia de enteros que matchean las captions (num_examples captions)...segunda vez
+all_captions = tokenizer.texts_to_sequences(all_captions) # obtengo secuencia de enteros que matchean las captions (num_examples captions)...segunda vez
 
 # Aplico padding a las captions , para obtener captions (np array , shape (80000 , 49) ) con tamaño fijo = max_length
-cap_vector = tf.keras.preprocessing.sequence.pad_sequences(train_seqs, padding='post')
+all_captions = tf.keras.preprocessing.sequence.pad_sequences(all_captions, padding='post')
 
 # Obtengo tamanio max de los train_seqs (49)
-max_length = calc_max_length(train_seqs)
+max_length = calc_max_length(all_captions)
+#print(max_length)
+
 
 def cap_seq_to_string(caption_seq):
   for word_number in caption_seq:
@@ -174,13 +170,19 @@ def cap_seq_to_string(caption_seq):
 
 TRAIN_PERCENTAGE = 0.8
 train_examples = int (TRAIN_PERCENTAGE*num_examples)
-img_name_train, img_name_val , cap_train, cap_val = img_name_vector[:train_examples] , img_name_vector[train_examples:] , cap_vector[:train_examples] , cap_vector[train_examples:]
+img_name_train, img_name_val , cap_train, cap_val = all_img_name_vector[:train_examples] , all_img_name_vector[train_examples:] , all_captions[:train_examples] , all_captions[train_examples:]
 
-print("%s \n" % cap_seq_to_string(cap_val[0]))
+#print(len(img_name_train), len(cap_train), len(img_name_val), len(cap_val))
 
-print(len(img_name_train), len(cap_train), len(img_name_val), len(cap_val))
+# Mezclado de captions e imagenes 
+cap_train, img_name_train = shuffle(cap_train,img_name_train,random_state=1)
 
- # PARAMETROS DEL MODELO
+cap_val,img_name_val = shuffle(cap_val,img_name_val,random_state=1)
+
+#print("img 0 eval : %s \n img 0 train : %s \n\n"% (img_name_val[0],img_name_train[0]) )
+ 
+
+  # PARAMETROS DEL MODELO
 
 BATCH_SIZE = 64
 BUFFER_SIZE = 1000
@@ -192,7 +194,7 @@ num_steps = len(img_name_train) // BATCH_SIZE
 features_shape = 2048
 attention_features_shape = 64
 
-# Cargo elementos de numpy
+# Funcion para mapear nomre de la imagen a tensor preprocesado por inceptionV3 y la caption correspondiente
 def map_func(img_name, cap):
   img_name_decoded = img_name.decode('utf-8')+'.npy'
   path = prepro_images_folder + img_name_decoded
@@ -202,13 +204,13 @@ def map_func(img_name, cap):
 # Creo el dataset con el path de las imagenes y los captions de entrenamiento (img_name_train, cap_train)
 dataset = tf.data.Dataset.from_tensor_slices((img_name_train, cap_train))
 
-# Carga en paralelo
+# Creo el dataset con datos de entrenamiento (.npy (incV3 encoded image) y la caption correspondiente)
 dataset = dataset.map(lambda item1, item2: tf.numpy_function(
           map_func, [item1, item2], [tf.float32, tf.int32]),
           num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
 # Mezcla el dataset y lo divide en batchs de 'BATCH_SIZE' para entrenar.
-dataset = dataset.shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
+dataset = dataset.batch(BATCH_SIZE)
 dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
 #Modelo del encoder-decoder de imagenes-texto
@@ -311,7 +313,7 @@ def loss_function(real, pred):
 
 ckpt = tf.train.Checkpoint(encoder=encoder,
                            decoder=decoder,
-                           optimizer = optimizer) # Creamos checkpoints para guardar modelo y optimizador 
+                         optimizer = optimizer) # Creamos checkpoints para guardar modelo y optimizador 
 
 ckpt_manager = tf.train.CheckpointManager(ckpt, 
               checkpoint_path, max_to_keep=5) 
@@ -321,7 +323,7 @@ ckpt_manager = tf.train.CheckpointManager(ckpt,
 start_epoch = 0 # contador
 
 if ckpt_manager.latest_checkpoint: # si existen checkpoints
-  start_epoch = int(ckpt_manager.latest_checkpoint.split('-')[-1])
+  start_epoch = int(ckpt_manager.latest_checkpoint.split('-')[-1])*CHPK_SAVE
   # restoring the latest checkpoint in checkpoint_path
   ckpt.restore(ckpt_manager.latest_checkpoint)  # cargo el ultimo checkpoint disponible  
 
@@ -358,11 +360,9 @@ def train_step(img_tensor, target):
 
   return loss, total_loss
 
-EPOCHS = 20
-
-""" 
-
 # Entrenamiento del encoder/decoder Image
+EPOCHS = 30
+print("Starting +%d epoch's training for image encoder model \n"% (EPOCHS) )
 
 for epoch in range(start_epoch, EPOCHS):
     start = time.time() # inicio cuenta de tiempo
@@ -378,15 +378,15 @@ for epoch in range(start_epoch, EPOCHS):
     # storing the epoch end loss value to plot later
     loss_plot.append(total_loss / num_steps)
 
-    if epoch % 2 == 0:
+    if epoch % CHPK_SAVE == 0:
       ckpt_manager.save()
 
     print ('Epoch {} Loss {:.6f}'.format(epoch + 1,
                                          total_loss/num_steps),flush=True)
-    print ('Time taken for 1 epoch {} sec\n'.format(time.time() - start))
-""" 
-
-def evaluate(image):
+    print ('Time taken for 1 epoch {} sec\n'.format(time.time() - start)) 
+    
+"""
+ def evaluate(image):
     attention_plot = np.zeros((max_length, attention_features_shape))  # vacio vector
 
     hidden = decoder.reset_state(batch_size=1) # vacio vector
@@ -433,7 +433,6 @@ def plot_attention(image, result, attention_plot):
     plt.tight_layout()
     plt.show()    # muestro plot
 
-
 # Compara con imagenes específicas las captions real y obtenida
 
 # captions on the validation set
@@ -456,4 +455,4 @@ print ('Prediction Caption:', ' '.join(result))
 plot_attention(image_path, result, attention_plot)
 # opening the image
 Image.open(image_path)
-
+"""

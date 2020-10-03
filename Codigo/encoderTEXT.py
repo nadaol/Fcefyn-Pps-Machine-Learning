@@ -56,10 +56,6 @@ for annot in annotations['annotations']: # annotation['annotations'][0] = {'imag
     all_all_captions.append(caption)                  # Guardo en caption las annotations parseadas
     all_all_img_name_vector.append(annot['image_id']) # Guardo id de la imagen correspondiente al caption (all_all_img_name_vector[0] = 318556)
 
-# Mezclado de captions e imagenes (random_state 1)
-all_all_captions, all_all_img_name_vector = shuffle(all_all_captions,
-                                          all_all_img_name_vector,
-                                          random_state=1) 
 
 # Limitar a num_examples captions-imagenes (414113 captions en total)(82783 images) para luego usar en el entrenamiento
 #num_examples = 80000
@@ -79,29 +75,32 @@ with open(pickle_tokenizer_path, 'rb') as handle:
 all_all_captions = tokenizer.texts_to_sequences(all_all_captions)
 # all_all_captions[0] = -> [3, 2, 136, 491, 10, 622, 430, 271, 58, 4]
 
+
+
+""" 
 all_captions = []
 all_img_name_vector  = []
 
 #Limite para la cantidad de palabras de un caption.
 max_length_set = 49
 
-""" # Filtro aquellas captions mayores a max_length_set ------------------- ?
+ # Filtro aquellas captions mayores a max_length_set ------------------- ?
 for i in range(len(all_all_captions)):
     if len(all_all_captions[i]) <= max_length_set:  
         all_captions.append(all_all_captions[i])
-        all_img_name_vector.append(all_all_img_name_vector[i]) 
+        all_img_name_vector.append(all_all_img_name_vector[i])  """
 
-# con length 49 quedan 414108 captions
-max_length = calc_max_length(all_captions)
+#maxima longitud de las captions
+max_length = calc_max_length(all_all_captions)
 
 #print(max_length)
-#print(np.array(all_captions).shape)"""
 
 # Aplico padding a las captions , para obtener captions con tamaño fijo = max_length
 all_all_captions = tf.keras.preprocessing.sequence.pad_sequences(all_all_captions,padding='post')
 
 #all_captions [0] = [  3   2 136 491  10 622 430 271  58   4   0   0  ....  0   0   0   0   0   0   0   0   0   0   0   0]
 
+#caption int array to caption sentence
 def cap_seq_to_string(caption_seq):
   for word_number in caption_seq:
     print("%s " % tokenizer.index_word[word_number],end='')
@@ -111,11 +110,17 @@ TRAIN_PERCENTAGE = 0.8
 train_examples = int (TRAIN_PERCENTAGE*num_examples)
 all_img_name_vector, img_name_val , all_captions, cap_val = all_all_img_name_vector[:train_examples] , all_all_img_name_vector[train_examples:] , all_all_captions[:train_examples] ,all_all_captions[train_examples:]
 
-#print("%s \n" % cap_seq_to_string(cap_val[0]))
 
+# Mezclado de captions e imagenes (random_state 1) train y evaluacion
+#train set
+all_captions, all_img_name_vector = shuffle(all_captions,all_img_name_vector,random_state=1) 
+#eval set
+cap_val, img_name_val = shuffle(cap_val,img_name_val,random_state=1) 
+
+# print(all_img_name_vector[0])
+# print(img_name_val[0])
 
 # Parametros del modelo
-max_length = 49
 BUFFER_SIZE = 1000
 BATCH_SIZE = 64
 embedding_dim = 256
@@ -147,9 +152,8 @@ class Encoder(tf.keras.Model):
     cnn1out = self.cnn1(output_gru) # capa CNN
     flat_vec = tf.reshape(cnn1out,[cnn1out.shape[0],cnn1out.shape[1]*cnn1out.shape[2]]) # Flattened
     output = self.fc(flat_vec)   # capa densa de salida - FC
-    output = tf.reshape(output,[64,64,-1]) # ------------------- agregado
     output = tf.nn.relu(output) #ver si reduce el error
-    return output, state # output shape (16384,) (64,256)
+    return output, state # output shape (16384,)
 
 # Inicio hidden state todo en cero
   def initialize_hidden_state(self):
@@ -185,9 +189,14 @@ def evaluate(caption):
 dataset = tf.data.Dataset.from_tensor_slices((cap_val,img_name_val))
 dataset = dataset.batch(BATCH_SIZE) # divido en batch
 dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE) # optimizado para la operacion 
-print("caption [0] : %s \n" %cap_val[0])
+#print("caption [0] : %s \n" %cap_val[0])
 
-#Codifica los captions y los guarda en encoded_captions_path
+for (batch,(caption,img_name)) in enumerate(dataset):
+    text_encoded_vec = evaluate(caption)
+    print(text_encoded_vec[0])
+    break
+
+""" #Codifica los primeros Nbatch*64 captions y los guarda en encoded_captions_path
 text_id = 0
 for (batch,(caption,img_name)) in enumerate(dataset):
     text_encoded_vec = evaluate(caption) # salida del encoder
@@ -201,17 +210,17 @@ for (batch,(caption,img_name)) in enumerate(dataset):
     if batch % 20==0:
       print("batch",batch)
     if(batch == 15):       #------------- agregado para codificar solo hasta el batch x
-      break
+      break """
  
-""" # Carga una caption codificada ,por img_id y text_id  --- agregado
+ # Carga una caption codificada ,por img_id y text_id  --- agregado
 def load_encoded_caption(img_id,text_id):
   with open(encoded_captions_path + 'encodedText_%012d_%012d.emdt' % (img_id,text_id), 'rb') as handle:
     return pickle.load(handle)
-vec = load_encoded_caption(9,1)
-print(vec)
-print(vec[127])  """
+
+#vec = load_encoded_caption(9,1)
+#print(vec)
+#print(vec[127]) 
 
 #[ 0.00625938  0.00668656  0.01346777 ...  0.00584808  0.00308381 -0.00475015]
-
 
 

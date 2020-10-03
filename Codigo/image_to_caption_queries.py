@@ -83,7 +83,7 @@ def validQuery (nearest_k,image_embedding_path):
         #print("image id %s \n"%image_id)
         for error,encoded_caption_id in nearest_k:
             #print(encoded_caption_id)
-            if(encoded_caption_id == image_id): 
+            if(encoded_caption_id == image_id): # imagen -> 1 captions  = 1
                 return True
             #print("caption id %s \n"%encoded_caption_id)
         return False

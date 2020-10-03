@@ -191,11 +191,12 @@ def generate_embedding(image_path):
 
     temp_input = tf.expand_dims(load_image(image_file)[0], 0)  # expando dimension de vector de entrada
     img_tensor_val = image_features_extract_model(temp_input)  # Proceso la imagen con el InceptionV3
-    img_tensor_val = tf.reshape(img_tensor_val, (img_tensor_val.shape[0], -1, img_tensor_val.shape[3]))
+    img_tensor_val = tf.reshape(img_tensor_val, (img_tensor_val.shape[0], -1, img_tensor_val.shape[3]))# (1,64,256)
     #print(img_tensor_val)
     
     features = encoder(img_tensor_val)  # aplico modelo del codificador y obtengo la codificacion de la imagen (feature)
-    #print(features.shape)
+    # save flatten image embedding (1,64,256) -> (16384,)
+    features = np.reshape(features,-1) 
     image_name = image_path.rsplit('/',1)[1]
     # Guardo la feature de la imagen en encoded_image_path .
     with open(encoded_image_path+image_name+".emb", 'wb') as handle:
@@ -226,17 +227,11 @@ for annot in annotations['annotations']:  #not in order
     all_captions.append(caption)                      # Guardo respectivo caption
 
 
-# Mezclado de captions e imagenes (random_state 1)
-train_captions, img_name_vector = shuffle(all_captions,
-                                          all_img_name_vector,
-                                          random_state=1)
-
 
 # Limitar a num_examples captions-imagenes (414113 captions en total)(82783 images) para luego usar en el entrenamiento
 #num_examples = 80000
 num_examples = 80000
-train_captions = train_captions [:num_examples]   # string train captions
-img_name_vector = img_name_vector [:num_examples] # 
+img_name_vector = all_img_name_vector [:num_examples] # 
 
 """
 # Show image by id   --- agregado
@@ -255,8 +250,12 @@ TRAIN_PERCENTAGE = 0.8
 train_examples = int (TRAIN_PERCENTAGE*num_examples)
 img_name_train, img_name_val  = img_name_vector[:train_examples] , img_name_vector[train_examples:]
 
-# Codifica las primeras 128 imagenes del set de evaluacion y las guarda en encoded_image_path .
-max_count = 1024
+# Mezclado de captions e imagenes (random_state 1)
+img_name_train= shuffle(img_name_train,random_state=1)
+img_name_val= shuffle(img_name_val,random_state=1)
+
+""" # Codifica las imagenes del set de evaluacion y las guarda en encoded_image_path .
+max_count = len(img_name_val)
 counti = 0
 for img_name in img_name_val:
     if (img_name[-4:]==".jpg"):           #checkea que la extensión sea jpg
@@ -266,7 +265,7 @@ for img_name in img_name_val:
         if counti % 100 == 0:
             print (counti)
         if counti > max_count-1 :
-            break
+            break """
         
 
 # Carga una imagen codificada por img_id   --- agregado

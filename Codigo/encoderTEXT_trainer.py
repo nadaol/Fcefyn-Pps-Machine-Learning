@@ -28,9 +28,12 @@ def calc_max_length(tensor):
 annotation_folder = '/workspace/datasets/COCO/annotations'
 annotation_file = annotation_folder + '/captions_train2014.json'
 
+# Path para cargar las codificaciones de imagenes del set de entrenamiento
+encoded_image_path = '/workspace/pickle_saves/encoded_images/'
+
 # Path para la lectura de las imagenes
 image_folder = "/workspace/datasets/COCO/train2014/"    
-image_prefix = "COCO_train2014_'"
+image_prefix = "COCO_train2014_"
 
 # Path para cargar el tokenizer
 pickle_tokenizer_path = '/workspace/pickle_saves/tokenizer/tokenizer.pickle'
@@ -52,21 +55,16 @@ annotations['annotations'] = sorted(annotations['annotations'], key = lambda i: 
 for annot in annotations['annotations']:
     caption = '<start> ' + annot['caption'] + ' <end>'  # Parseo annotations agregando simbolos de inicio y fin .
     image_id = annot['image_id']                        # obtengo id de la imagen correspondiente al caption
-    full_coco_image_path = image_folder + image_prefix + '%012d' % (image_id) # guardo el path completo donde se encuentra la imagen correspondiente
+    full_coco_image_path = encoded_image_path + image_prefix + '%012d' % (image_id) # guardo el path a las codificaciones de las imagenes (.emb)
 
     all_img_name_vector.append(full_coco_image_path)  # Guardo pth de la imgen
     all_captions.append(caption)                      # Guardo respectivo caption
 
-# Mezclado de captions e imagenes 
-train_captions, img_name_vector = shuffle(all_captions,
-                                          all_img_name_vector,
-                                          random_state=1)
-
 # Limitar a num_example el set de captions-imágenes (414113 captions en total) para luego usar en el entrenamiento
 num_examples = 80000
-train_captions = train_captions[:num_examples]
-img_name_vector = img_name_vector[:num_examples]
-print (len(train_captions), len(all_captions))
+all_captions = all_captions[:num_examples]
+all_img_name_vector = all_img_name_vector[:num_examples]
+print (len(all_captions), len(all_img_name_vector))
 
 # Limite del vocabulario a k palabras.
 top_k = 5000
@@ -77,16 +75,16 @@ with open(pickle_tokenizer_path, 'rb') as handle:
 
 # Obtengo la lista que representan las captions (num_examples captions)
 # train_captions[0] = <start> A very clean and well decorated empty bathroom <end>
-train_captions = tokenizer.texts_to_sequences(train_captions)
+all_captions = tokenizer.texts_to_sequences(all_captions)
 # train_captions[0] = -> [3, 2, 136, 491, 10, 622, 430, 271, 58, 4]
 
 # Aplico padding a las captions , para obtener captions (np array , shape (80000 , 49) ) con tamaño fijo = max_length
-cap_vector = tf.keras.preprocessing.sequence.pad_sequences(train_captions,padding='post')
+all_captions = tf.keras.preprocessing.sequence.pad_sequences(all_captions,padding='post')
 
 #all_captions [0] = [  3   2 136 491  10 622 430 271  58   4   0   0  ....  0   0   0   0   0   0   0   0   0   0   0   0]
     
 # Obtengo tamanio max de los train_seqs (49)
-max_length = calc_max_length(cap_vector)  
+max_length = calc_max_length(all_captions)  
 
 def cap_seq_to_string(caption_seq):
   for word_number in caption_seq:
@@ -95,10 +93,21 @@ def cap_seq_to_string(caption_seq):
 # Separamos image_name_vector (paths de las imagenes) y cap_vector (captions correspondientes) para entrenamiento 80% y evaluación 20%. ver que la division sea igual al de la evaluacion (en encoderTEXT)
 TRAIN_PERCENTAGE = 0.8
 train_examples = int (TRAIN_PERCENTAGE*num_examples)
-img_name_train, img_name_val , cap_train, cap_val = img_name_vector[:train_examples] , img_name_vector[train_examples:] , cap_vector[:train_examples] , cap_vector[train_examples:]
+img_name_train, img_name_val , cap_train, cap_val = all_img_name_vector[:train_examples] , all_img_name_vector[train_examples:] , all_captions[:train_examples] , all_captions[train_examples:]
 
 print("%s \n" % cap_seq_to_string(cap_val[0]))
 
+# Mezclado de captions e imagenes 
+train_captions, img_name_train = shuffle(cap_train,
+                                          img_name_train,
+                                          random_state=1)
+
+                                          # Mezclado de captions e imagenes 
+eval_captions, img_name_eval = shuffle(cap_val,           #no se usa aca
+                                          img_name_val,
+                                          random_state=1)
+
+print("img 0 eval : %s \n img 0 train : %s \n\n"% (img_name_eval[0],img_name_train[0]) )
 
 # Preparacion
 
@@ -113,7 +122,7 @@ vocab_inp_size = top_k + 1 #### OJO
 
 ## Funcion ,retorna el tensor que representa una imagen (previamente guardada en formato .npy)
 def map_func(img_name, cap):
-  img_tensor = np.load(img_name.decode('utf-8')+'.npy')
+  img_tensor = np.load(img_name.decode('utf-8')+'.emb',allow_pickle=True) # debería entrenar con los .emb
   return img_tensor, cap
 
 # Creo el dataset con el path de las imagenes y los captions de entrenamiento (img_name_train, cap_train)
@@ -203,7 +212,7 @@ def train_step(inp, targ, enc_hidden):
 
   return batch_loss,enc_output  
 
-#entrenamiento del encoder text
+""" #entrenamiento del encoder text
 EPOCHS = 500
 print( "v41")
 for epoch in range(EPOCHS):
@@ -230,4 +239,4 @@ for epoch in range(EPOCHS):
       ckpt_manager.save()   ## almaceno checkpoint cada 2 epoch's
   print('Epoch {} Loss {:.4f}'.format(epoch + 1,
                                       total_loss / steps_per_epoch))
-  print('Time taken for 1 epoch {} sec\n'.format(time.time() - start))
+  print('Time taken for 1 epoch {} sec\n'.format(time.time() - start)) """
