@@ -10,6 +10,7 @@ import pickle
 from PIL import Image
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
+from tqdm import tqdm
 
 ## Codificador de imagenes : Codifica imagenes y las guarda en 'encoded_image_path'
 
@@ -180,7 +181,10 @@ ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
 
 # Restarauro el ultimo checkpoint de checkpoint_path, tanto para el modelo de encoder como el decoder
 ckpt.restore(ckpt_manager.latest_checkpoint)
-
+if ckpt_manager.latest_checkpoint:
+	print("---------- Restored from {}".format(ckpt_manager.latest_checkpoint))
+else:
+	print("---------- Initializing from scratch.")
 
 # Codifico la imagen image y la guardo en encoded_image_path .
 def generate_embedding(image_path):
@@ -197,6 +201,7 @@ def generate_embedding(image_path):
     features = encoder(img_tensor_val)  # aplico modelo del codificador y obtengo la codificacion de la imagen (feature)
     # save flatten image embedding (1,64,256) -> (16384,)
     features = np.reshape(features,-1) 
+    #print("-------------- Feature shape %s \n"%features.shape)
     image_name = image_path.rsplit('/',1)[1]
     # Guardo la feature de la imagen en encoded_image_path .
     with open(encoded_image_path+image_name+".emb", 'wb') as handle:
@@ -230,7 +235,7 @@ for annot in annotations['annotations']:  #not in order
 
 # Limitar a num_examples captions-imagenes (414113 captions en total)(82783 images) para luego usar en el entrenamiento
 #num_examples = 80000
-num_examples = 80000
+num_examples = 120000
 img_name_vector = all_img_name_vector [:num_examples] # 
 
 """
@@ -254,27 +259,32 @@ img_name_train, img_name_val  = img_name_vector[:train_examples] , img_name_vect
 img_name_train= shuffle(img_name_train,random_state=1)
 img_name_val= shuffle(img_name_val,random_state=1)
 
-""" # Codifica las imagenes del set de evaluacion y las guarda en encoded_image_path .
-max_count = len(img_name_val)
-counti = 0
-for img_name in img_name_val:
+# Training images encoding
+#img_names_not_repeated = set(img_name_train)
+
+# Evaluation images encoding
+img_names_not_repeated = set(img_name_val)
+
+print("\n---------------- Starting generation of image codifications ---------------\n")
+print("\nNumber of images to encode : ",len(img_names_not_repeated))
+print("Saving in %s*.emb\n" % (encoded_image_path) )
+
+# Codifica las imagenes del set de evaluacion y las guarda en encoded_image_path .
+
+
+for img_name in tqdm(img_names_not_repeated):
     if (img_name[-4:]==".jpg"):           #checkea que la extensión sea jpg
         generate_embedding(img_name[:-4]) #codificacion y guardado
-        counti+= 1
-        #print(counti)
-        if counti % 100 == 0:
-            print (counti)
-        if counti > max_count-1 :
-            break """
-        
 
-# Carga una imagen codificada por img_id   --- agregado
+
 """ 
+# Carga una imagen codificada por img_id   --- agregado
+
 def load_encoded_image(img_id):
   with open(encoded_image_path + image_prefix +'%012d.emb' % (img_id) , 'rb') as handle:
     return pickle.load(handle)
 
-encoded_image_9 = load_encoded_image(19767)
-print(encoded_image_9)
+encoded_image_9 = load_encoded_image(100930)
+print(encoded_image_9.shape)
 """ 
 

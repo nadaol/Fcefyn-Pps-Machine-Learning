@@ -59,7 +59,7 @@ for annot in annotations['annotations']: # annotation['annotations'][0] = {'imag
 
 # Limitar a num_examples captions-imagenes (414113 captions en total)(82783 images) para luego usar en el entrenamiento
 #num_examples = 80000
-num_examples = 80000
+num_examples = 120000
 all_all_captions = all_all_captions[:num_examples]   # string train captions
 all_all_img_name_vector = all_all_img_name_vector[:num_examples] # 
 
@@ -111,6 +111,8 @@ train_examples = int (TRAIN_PERCENTAGE*num_examples)
 all_img_name_vector, img_name_val , all_captions, cap_val = all_all_img_name_vector[:train_examples] , all_all_img_name_vector[train_examples:] , all_all_captions[:train_examples] ,all_all_captions[train_examples:]
 
 
+print("firs eval image before shuffle : ",img_name_val[0])
+
 # Mezclado de captions e imagenes (random_state 1) train y evaluacion
 #train set
 all_captions, all_img_name_vector = shuffle(all_captions,all_img_name_vector,random_state=1) 
@@ -119,7 +121,8 @@ cap_val, img_name_val = shuffle(cap_val,img_name_val,random_state=1)
 
 # print(all_img_name_vector[0])
 # print(img_name_val[0])
-
+print(cap_seq_to_string(cap_val[548]))
+""" 
 # Parametros del modelo
 BUFFER_SIZE = 1000
 BATCH_SIZE = 64
@@ -177,6 +180,10 @@ ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
 
 # Restoring the latest checkpoint in checkpoint_path
 ckpt.restore(ckpt_manager.latest_checkpoint) 
+if ckpt_manager.latest_checkpoint:
+        print("Checkpoint Restored from {}".format(ckpt_manager.latest_checkpoint))
+else:
+        print("Initializing from scratch.")
 
 # Funcion para inicializacion y evaluación del encoder
 def evaluate(caption):
@@ -195,28 +202,30 @@ for (batch,(caption,img_name)) in enumerate(dataset):
     text_encoded_vec = evaluate(caption)
     print(text_encoded_vec[0])
     break
-
-""" #Codifica los primeros Nbatch*64 captions y los guarda en encoded_captions_path
+""" 
+print("------------------ Generating encoded captions and saving them in %s ----------------\n" % (encoded_captions_path) )
+print("Size of eval dataset : %d \n" % len(cap_val))
+print("First 3 eval images : %s \n" % (img_name_val[:3]))
+""" 
+#Codifica las captions del set de evalucacion y los guarda en encoded_captions_path
 text_id = 0
 for (batch,(caption,img_name)) in enumerate(dataset):
     text_encoded_vec = evaluate(caption) # salida del encoder
-    print("caption : %s \n encoded_caption shape : %s \n" % (caption[0],text_encoded_vec[0]))
+    #print("caption : %s \n encoded_caption shape : %s \n" % (caption[0],text_encoded_vec[0]))
     for i in range(64): 
       text_id += 1
-      print(("i = %d , img_name : %s \n")%(i,img_name[i]))
+      #print(("i = %d , img_name : %s \n")%(i,img_name[i]))
       full_encoded_captions_path = encoded_captions_path + 'encodedText_%012d_%012d.emdt' % (img_name[i],text_id)
       with open(full_encoded_captions_path, 'wb') as handle:
         pickle.dump(text_encoded_vec[i].numpy(), handle, protocol=pickle.HIGHEST_PROTOCOL) 
-    if batch % 20==0:
+    if batch % 10==0:
       print("batch",batch)
-    if(batch == 15):       #------------- agregado para codificar solo hasta el batch x
-      break """
- 
+
  # Carga una caption codificada ,por img_id y text_id  --- agregado
 def load_encoded_caption(img_id,text_id):
   with open(encoded_captions_path + 'encodedText_%012d_%012d.emdt' % (img_id,text_id), 'rb') as handle:
     return pickle.load(handle)
-
+""" 
 #vec = load_encoded_caption(9,1)
 #print(vec)
 #print(vec[127]) 

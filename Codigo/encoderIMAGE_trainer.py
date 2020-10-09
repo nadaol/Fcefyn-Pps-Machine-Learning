@@ -37,7 +37,7 @@ pickle_tokenizer_path = '/workspace/pickle_saves/tokenizer/tokenizer.pickle'
 checkpoint_path = "/workspace/checkpoints/image_encoder_decoder/"  
 
 #for each 'CHPK_SAVE' epochs saves a checkpoint
-CHPK_SAVE = 4
+CHPK_SAVE = 2
 
 # Descargo annotations
 ## Si no existe
@@ -60,8 +60,8 @@ with open(annotation_file, 'r') as f:
     annotations = json.load(f)
 
 ## Cargado de captions y path de las imagenes correspondientes
-all_captions = []
-all_img_name_vector = []
+all_all_captions = []
+all_all_img_name_vector = []
 
 #Sort annotations by image_id ----- agregado
 annotations['annotations'] = sorted(annotations['annotations'], key = lambda i: i['image_id']) 
@@ -71,15 +71,15 @@ for annot in annotations['annotations']:  #not in order
     image_id = annot['image_id']                        # obtengo id de la imagen correspondiente al caption
     full_coco_image_path =  image_prefix + '%012d' % (image_id) # guardo el path completo donde se encuentra la imagen correspondiente
 
-    all_img_name_vector.append(full_coco_image_path)  # Guardo el path imagen
-    all_captions.append(caption)                      # Guardo respectivo caption                            
+    all_all_img_name_vector.append(full_coco_image_path)  # Guardo el path imagen
+    all_all_captions.append(caption)                      # Guardo respectivo caption                            
                                           
 
 # Limitar a num_examples captions-imagenes (414113 captions en total)(82783 images) para luego usar en el entrenamiento
-#num_examples/5 ~ num_images
+#  num_images ~ num_examples/5
 num_examples = 120000
-all_captions = all_captions[:num_examples]   # string train captions
-all_img_name_vector = all_img_name_vector[:num_examples] # 
+all_captions = all_all_captions[:num_examples]   # string train captions
+all_img_name_vector = all_all_img_name_vector[:num_examples] # 
 
 # Retorna la imagen image_path reducida ( shape = 299,299,3 ) y normalizada para luego utilizarla como input del inceptionV3
 def load_image(image_path):
@@ -98,16 +98,13 @@ hidden_layer = image_model.layers[-1].output # guardo capa output
 
 # Obtengo el modelo para usar en el codificador de imagen
 image_features_extract_model = tf.keras.Model(new_input, hidden_layer)
-
-""" 
+"""
 # Caching the inceptionV3 encoded images
  
 # Obtengo path de imagenes en orden ascendente por nombre (igual que ordenar por image_id) ,ordena para cachear,el train_captions,img_name_vector es el mezclado
 
-encode_train = sorted(set(all_img_name_vector)) # Crea el set de imagenes no repetidas de img_name_vector y lo guarda en encode_train
-
+encode_train = sorted(set(all_all_img_name_vector)) # Crea el set de imagenes no repetidas de img_name_vector y lo guarda en encode_train
 print("Number of Images for caching % d \n" % (len(encode_train))) #max 82783 images
-
 for i,image_name in enumerate(encode_train): 
   encode_train[i] = image_folder + image_name + ".jpg"
 
@@ -129,7 +126,7 @@ for img, path in image_dataset:
     path_of_feature = p.numpy().decode("utf-8") 
     image_id = np.char.rpartition(np.char.rpartition(path_of_feature,'_')[2],'.')[0]
     np.save(prepro_images_folder + image_prefix + image_id , bf.numpy())  #guardo batch features en un zip 
- """
+"""
 
  # Funcion para calcular el tamaño maximo de los elementos t de tensor
 def calc_max_length(tensor):
@@ -316,17 +313,20 @@ ckpt = tf.train.Checkpoint(encoder=encoder,
                          optimizer = optimizer) # Creamos checkpoints para guardar modelo y optimizador 
 
 ckpt_manager = tf.train.CheckpointManager(ckpt, 
-              checkpoint_path, max_to_keep=5) 
+              checkpoint_path, max_to_keep=3) 
 # Establezco el checkpoint manager a usar (limite para 5 ultimos checkpoints)
 
 
-start_epoch = 0 # contador
+start_epoch = 0
 
 if ckpt_manager.latest_checkpoint: # si existen checkpoints
-  start_epoch = int(ckpt_manager.latest_checkpoint.split('-')[-1])*CHPK_SAVE
+  start_epoch = int(ckpt_manager.latest_checkpoint.split('-')[-1])
   # restoring the latest checkpoint in checkpoint_path
-  ckpt.restore(ckpt_manager.latest_checkpoint)  # cargo el ultimo checkpoint disponible  
+  ckpt.restore(ckpt_manager.latest_checkpoint)  # cargo el ultimo checkpoint disponible 
+  print("Restored from {}".format(ckpt.manager.latest_checkpoint))
 
+else:
+  print("Initializing from scratch.")
 
 loss_plot = []
 @tf.function
@@ -360,9 +360,15 @@ def train_step(img_tensor, target):
 
   return loss, total_loss
 
+""" 
 # Entrenamiento del encoder/decoder Image
+
 EPOCHS = 30
-print("Starting +%d epoch's training for image encoder model \n"% (EPOCHS) )
+
+print("\n-------------  Starting %d epoch's training for image encoder model  ------------\n"% (EPOCHS) )
+print("Number of Images for training % d \n" % (len(sorted(set(img_name_train))))) #max 82783 images
+print("Number of Captions for training %d \n" % (len(cap_train)))  # max 414k
+print("First 3 images in training set \n%s\n %s\n %s\n" % (img_name_train[0],img_name_train[1],img_name_train[2]))
 
 for epoch in range(start_epoch, EPOCHS):
     start = time.time() # inicio cuenta de tiempo
@@ -379,42 +385,42 @@ for epoch in range(start_epoch, EPOCHS):
     loss_plot.append(total_loss / num_steps)
 
     if epoch % CHPK_SAVE == 0:
-      ckpt_manager.save()
+      ckpt_manager.save(checkpoint_number=epoch+1)
 
     print ('Epoch {} Loss {:.6f}'.format(epoch + 1,
                                          total_loss/num_steps),flush=True)
-    print ('Time taken for 1 epoch {} sec\n'.format(time.time() - start)) 
+    print ('Time taken for 1 epoch {} sec\n'.format(time.time() - start)) """
     
-"""
- def evaluate(image):
-    attention_plot = np.zeros((max_length, attention_features_shape))  # vacio vector
 
-    hidden = decoder.reset_state(batch_size=1) # vacio vector
+def evaluate(image):
+  attention_plot = np.zeros((max_length, attention_features_shape))  # vacio vector
 
-    temp_input = tf.expand_dims(load_image(image)[0], 0) # expando dimension de vector de entrada
-    img_tensor_val = image_features_extract_model(temp_input) # obtengo tensor de la imagen
-    img_tensor_val = tf.reshape(img_tensor_val, (img_tensor_val.shape[0], -1, img_tensor_val.shape[3]))
+  hidden = decoder.reset_state(batch_size=1) # vacio vector
 
-    features = encoder(img_tensor_val) # aplico modelo y obtengo los features
+  temp_input = tf.expand_dims(load_image(image)[0], 0) # Preprocesado de imagen
+  img_tensor_val = image_features_extract_model(temp_input) # Preprocesado por IncV3
+  #print("---------- Incv3 out features shape (%s)"%img_tensor_val.shape)
+  img_tensor_val = tf.reshape(img_tensor_val, (img_tensor_val.shape[0], -1, img_tensor_val.shape[3]))
+  features = encoder(img_tensor_val) # aplico modelo y obtengo los features
+  #print("---------- Encoder features shape (%s)"%features.shape)
+  dec_input = tf.expand_dims([tokenizer.word_index['<start>']], 0)
+  result = []
 
-    dec_input = tf.expand_dims([tokenizer.word_index['<start>']], 0)
-    result = []
+  for i in range(max_length):
+      predictions, hidden, attention_weights = decoder(dec_input, features, hidden) # obtengo salidas de decoder
 
-    for i in range(max_length):
-        predictions, hidden, attention_weights = decoder(dec_input, features, hidden) # obtengo salidas de decoder
+      attention_plot[i] = tf.reshape(attention_weights, (-1, )).numpy() 
 
-        attention_plot[i] = tf.reshape(attention_weights, (-1, )).numpy() 
+      predicted_id = tf.random.categorical(predictions, 1)[0][0].numpy()  
+      result.append(tokenizer.index_word[predicted_id]) ## voy formando el vector de resultado
 
-        predicted_id = tf.random.categorical(predictions, 1)[0][0].numpy()  
-        result.append(tokenizer.index_word[predicted_id]) ## voy formando el vector de resultado
+      if tokenizer.index_word[predicted_id] == '<end>': # si llegue al fin de la oracion
+          return result, attention_plot
 
-        if tokenizer.index_word[predicted_id] == '<end>': # si llegue al fin de la oracion
-            return result, attention_plot
+      dec_input = tf.expand_dims([predicted_id], 0)
 
-        dec_input = tf.expand_dims([predicted_id], 0)
-
-    attention_plot = attention_plot[:len(result), :]
-    return result, attention_plot
+  attention_plot = attention_plot[:len(result), :]
+  return result, attention_plot
 
 def plot_attention(image, result, attention_plot):
     temp_image = np.array(Image.open(image))  # obtengo vector de imagen
@@ -431,13 +437,14 @@ def plot_attention(image, result, attention_plot):
         ax.imshow(temp_att, cmap='gray', alpha=0.6, extent=img.get_extent())
 
     plt.tight_layout()
-    plt.show()    # muestro plot
+    plt.show()  
 
 # Compara con imagenes específicas las captions real y obtenida
 
 # captions on the validation set
 rid = np.random.randint(0, len(img_name_val))
 image = image_folder + img_name_val[rid] + ".jpg"
+print('Image : ',image)
 real_caption = ' '.join([tokenizer.index_word[i] for i in cap_val[rid] if i not in [0]])
 result, attention_plot = evaluate(image)
 
@@ -455,4 +462,3 @@ print ('Prediction Caption:', ' '.join(result))
 plot_attention(image_path, result, attention_plot)
 # opening the image
 Image.open(image_path)
-"""

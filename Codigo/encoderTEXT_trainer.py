@@ -41,6 +41,11 @@ pickle_tokenizer_path = '/workspace/pickle_saves/tokenizer/tokenizer.pickle'
 # Defino path para guardar checkpoint del modelo encoderText
 checkpoint_path = '/workspace/checkpoints/text_encoder/'
 
+# Epochs between saves
+CKPT_EPOCH_SAVE = 2
+# Max checkpoints to save
+CKPT_MAX = 2
+
 # Lectura de annotations
 with open(annotation_file, 'r') as f:
     annotations = json.load(f)
@@ -61,10 +66,9 @@ for annot in annotations['annotations']:
     all_captions.append(caption)                      # Guardo respectivo caption
 
 # Limitar a num_example el set de captions-imágenes (414113 captions en total) para luego usar en el entrenamiento
-num_examples = 80000
+num_examples = 120000
 all_captions = all_captions[:num_examples]
 all_img_name_vector = all_img_name_vector[:num_examples]
-print (len(all_captions), len(all_img_name_vector))
 
 # Limite del vocabulario a k palabras.
 top_k = 5000
@@ -95,8 +99,6 @@ TRAIN_PERCENTAGE = 0.8
 train_examples = int (TRAIN_PERCENTAGE*num_examples)
 img_name_train, img_name_val , cap_train, cap_val = all_img_name_vector[:train_examples] , all_img_name_vector[train_examples:] , all_captions[:train_examples] , all_captions[train_examples:]
 
-print("%s \n" % cap_seq_to_string(cap_val[0]))
-
 # Mezclado de captions e imagenes 
 train_captions, img_name_train = shuffle(cap_train,
                                           img_name_train,
@@ -106,8 +108,12 @@ train_captions, img_name_train = shuffle(cap_train,
 eval_captions, img_name_eval = shuffle(cap_val,           #no se usa aca
                                           img_name_val,
                                           random_state=1)
+print("Train dataset size %d \n" % (len(train_captions)))
+print("Evaluation dataset size %d \n" % (len(eval_captions)))
+print("Total images in train set %d \n" % (len(set(img_name_train))) )
+print("First train emb image %s \n" % img_name_train[0])
+print("First eval emb image %s \n" % img_name_eval[0])
 
-print("img 0 eval : %s \n img 0 train : %s \n\n"% (img_name_eval[0],img_name_train[0]) )
 
 # Preparacion
 
@@ -186,15 +192,19 @@ def loss_function(real, pred):
 # Creamos checkpoints para guardar modelo y optimizador 
 ckpt = tf.train.Checkpoint(encoder = encoder,
                            optimizer = optimizer)
-# Establezco el checkpoint manager a usar (limite para 5 ultimos checkpoints)
-ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
+# Establezco el checkpoint manager a usar (limite para 3 ultimos checkpoints)
+ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=CKPT_MAX)
 
-start_epoch = 0 # contador de repeticiones de entrenamiento
+start_epoch = 0
 
-if ckpt_manager.latest_checkpoint: # checkeo si existen checkpoints
-  start_epoch = int(ckpt_manager.latest_checkpoint.split('-')[-1]) # 
+if ckpt_manager.latest_checkpoint: # si existen checkpoints
+  start_epoch = int(ckpt_manager.latest_checkpoint.split('-')[-1])
   # restoring the latest checkpoint in checkpoint_path
-  ckpt.restore(ckpt_manager.latest_checkpoint)  # cargo el ultimo checkpoint disponible                     
+  ckpt.restore(ckpt_manager.latest_checkpoint)  # cargo el ultimo checkpoint disponible  
+  print("Restored from {}".format(ckpt.manager.latest_checkpoint))
+
+else:
+  print("Initializing from scratch.")
 
 ## METODO PARA TRAIN
 @tf.function
@@ -212,21 +222,26 @@ def train_step(inp, targ, enc_hidden):
 
   return batch_loss,enc_output  
 
-""" #entrenamiento del encoder text
-EPOCHS = 500
-print( "v41")
-for epoch in range(EPOCHS):
+#entrenamiento del encoder text
+EPOCHS = 30
+
+print("\n-------------  Starting %d epoch's training for text encoder model  ------------\n"% (EPOCHS) )
+print("Number of encoded images for training % d \n" % (len(sorted(set(img_name_train))))) #max 82783 images
+print("Number of Input Captions %d \n" % (len(train_captions)))  # max 414k
+print("Saving checkpoints every %d epochs in %s \n" % (CKPT_EPOCH_SAVE,checkpoint_path))
+
+for epoch in range(start_epoch , EPOCHS):
   start = time.time() # inicio cuenta de tiempo
   enc_hidden = encoder.initialize_hidden_state() # inicio hidden state en cero
   total_loss = 0 # reinicio cuenta loss
 
-  for (batch, (targ,cap)) in enumerate(dataset):
+  for (batch, (targ,cap)) in enumerate(dataset): #iterate over dataset (encoded image(.emb) (target), caption (input))
     #verrr
     enc_hidden = encoder.initialize_hidden_state()
     batch_loss,res = train_step(cap, targ, enc_hidden)
-    print(res[50].numpy())  #imprime un elemento cualquiera del tensor del caption con el valor real del target para comparar
-    print(targ[50].numpy())
-    sys.exit()
+    #print(res[50].numpy())  #imprime un elemento cualquiera del tensor del caption con el valor real del target para comparar
+    #print(targ[50].numpy())
+    #sys.exit()
 
     total_loss += batch_loss # computo loss de cada epoch
 
@@ -235,8 +250,9 @@ for epoch in range(EPOCHS):
                                                    batch,
                                                    batch_loss.numpy()))  
 
-  if epoch % 2 == 0:
+  if epoch % CKPT_EPOCH_SAVE == 0:
       ckpt_manager.save()   ## almaceno checkpoint cada 2 epoch's
   print('Epoch {} Loss {:.4f}'.format(epoch + 1,
                                       total_loss / steps_per_epoch))
-  print('Time taken for 1 epoch {} sec\n'.format(time.time() - start)) """
+  print('Time taken for 1 epoch {} sec\n'.format(time.time() - start))
+
