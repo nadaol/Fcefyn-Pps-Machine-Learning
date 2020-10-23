@@ -98,7 +98,8 @@ hidden_layer = image_model.layers[-1].output # guardo capa output
 
 # Obtengo el modelo para usar en el codificador de imagen
 image_features_extract_model = tf.keras.Model(new_input, hidden_layer)
-"""
+
+""" 
 # Caching the inceptionV3 encoded images
  
 # Obtengo path de imagenes en orden ascendente por nombre (igual que ordenar por image_id) ,ordena para cachear,el train_captions,img_name_vector es el mezclado
@@ -126,7 +127,7 @@ for img, path in image_dataset:
     path_of_feature = p.numpy().decode("utf-8") 
     image_id = np.char.rpartition(np.char.rpartition(path_of_feature,'_')[2],'.')[0]
     np.save(prepro_images_folder + image_prefix + image_id , bf.numpy())  #guardo batch features en un zip 
-"""
+""" 
 
  # Funcion para calcular el tamaño maximo de los elementos t de tensor
 def calc_max_length(tensor):
@@ -316,14 +317,13 @@ ckpt_manager = tf.train.CheckpointManager(ckpt,
               checkpoint_path, max_to_keep=3) 
 # Establezco el checkpoint manager a usar (limite para 5 ultimos checkpoints)
 
-
 start_epoch = 0
 
 if ckpt_manager.latest_checkpoint: # si existen checkpoints
   start_epoch = int(ckpt_manager.latest_checkpoint.split('-')[-1])
   # restoring the latest checkpoint in checkpoint_path
   ckpt.restore(ckpt_manager.latest_checkpoint)  # cargo el ultimo checkpoint disponible 
-  print("Restored from {}".format(ckpt.manager.latest_checkpoint))
+  print("Restored from {}".format(ckpt_manager.latest_checkpoint))
 
 else:
   print("Initializing from scratch.")
@@ -363,7 +363,7 @@ def train_step(img_tensor, target):
 """ 
 # Entrenamiento del encoder/decoder Image
 
-EPOCHS = 30
+EPOCHS = 60
 
 print("\n-------------  Starting %d epoch's training for image encoder model  ------------\n"% (EPOCHS) )
 print("Number of Images for training % d \n" % (len(sorted(set(img_name_train))))) #max 82783 images
@@ -389,8 +389,8 @@ for epoch in range(start_epoch, EPOCHS):
 
     print ('Epoch {} Loss {:.6f}'.format(epoch + 1,
                                          total_loss/num_steps),flush=True)
-    print ('Time taken for 1 epoch {} sec\n'.format(time.time() - start)) """
-    
+    print ('Time taken for 1 epoch {} sec\n'.format(time.time() - start)) 
+""" 
 
 def evaluate(image):
   attention_plot = np.zeros((max_length, attention_features_shape))  # vacio vector
@@ -437,7 +437,7 @@ def plot_attention(image, result, attention_plot):
         ax.imshow(temp_att, cmap='gray', alpha=0.6, extent=img.get_extent())
 
     plt.tight_layout()
-    plt.show()  
+    plt.show() 
 
 # Compara con imagenes específicas las captions real y obtenida
 

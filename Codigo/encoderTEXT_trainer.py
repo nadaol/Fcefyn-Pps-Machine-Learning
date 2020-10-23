@@ -1,3 +1,5 @@
+
+
 ## -- LIBRERIAS
 import tensorflow as tf
 
@@ -39,10 +41,10 @@ image_prefix = "COCO_train2014_"
 pickle_tokenizer_path = '/workspace/pickle_saves/tokenizer/tokenizer.pickle'
 
 # Defino path para guardar checkpoint del modelo encoderText
-checkpoint_path = '/workspace/checkpoints/text_encoder/'
+checkpoint_path = '/workspace/checkpoints/encoder_text/'
 
 # Epochs between saves
-CKPT_EPOCH_SAVE = 2
+CKPT_EPOCH_SAVE = 5
 # Max checkpoints to save
 CKPT_MAX = 2
 
@@ -91,8 +93,10 @@ all_captions = tf.keras.preprocessing.sequence.pad_sequences(all_captions,paddin
 max_length = calc_max_length(all_captions)  
 
 def cap_seq_to_string(caption_seq):
+  sentence = []
   for word_number in caption_seq:
-    print("%s " % tokenizer.index_word[word_number],end='')
+    sentence.append(tokenizer.index_word[word_number])
+  return sentence
 
 # Separamos image_name_vector (paths de las imagenes) y cap_vector (captions correspondientes) para entrenamiento 80% y evaluación 20%. ver que la division sea igual al de la evaluacion (en encoderTEXT)
 TRAIN_PERCENTAGE = 0.8
@@ -108,6 +112,16 @@ train_captions, img_name_train = shuffle(cap_train,
 eval_captions, img_name_eval = shuffle(cap_val,           #no se usa aca
                                           img_name_val,
                                           random_state=1)
+
+
+i = 0
+for (img,cap) in zip(img_name_train,train_captions):
+        print("Image name : %s ," % img)
+        print("Caption : %s \n " % cap_seq_to_string(cap))
+        i = i + 1
+        if(i==1):
+                break
+
 print("Train dataset size %d \n" % (len(train_captions)))
 print("Evaluation dataset size %d \n" % (len(eval_captions)))
 print("Total images in train set %d \n" % (len(set(img_name_train))) )
@@ -132,7 +146,16 @@ def map_func(img_name, cap):
   return img_tensor, cap
 
 # Creo el dataset con el path de las imagenes y los captions de entrenamiento (img_name_train, cap_train)
-dataset = tf.data.Dataset.from_tensor_slices((img_name_train, cap_train))
+dataset = tf.data.Dataset.from_tensor_slices((img_name_train,train_captions))
+
+#print first 10 train set
+i = 0
+for (img,cap) in zip(img_name_train,train_captions):
+	print("Image name : %s ," % img)
+	print("Caption : %s \n " % cap_seq_to_string(cap))
+	i = i + 1
+	if(i==10):
+		break
 
 # Cargar numpy ya guardado de la imagen codificada en encoderIMAGE
 dataset = dataset.map(lambda item1, item2: tf.numpy_function(
@@ -142,6 +165,9 @@ dataset = dataset.map(lambda item1, item2: tf.numpy_function(
 # Mezcla el dataset y lo divide en batchses 'BATCH_SIZE' para entrenar.
 dataset = dataset.shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
 dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE) # optimizado para la operacion
+
+example_input_batch, example_target_batch = next(iter(dataset))
+print(example_input_batch.shape, example_target_batch.shape)
 
 ## Clase del modelo ENCODER (igual al encoderTEXT)
 
@@ -165,7 +191,7 @@ class Encoder(tf.keras.Model):
     cnn1out = self.cnn1(output_gru)
     flat_vec = tf.reshape(cnn1out,[cnn1out.shape[0],cnn1out.shape[1]*cnn1out.shape[2]])
     output = self.fc(flat_vec)
-    #output = tf.nn.relu(output) 
+    #output = tf.nn.softmax(output)
     return output, state
 
 # Funcion para iniciar hidden state todo en cero
@@ -201,7 +227,7 @@ if ckpt_manager.latest_checkpoint: # si existen checkpoints
   start_epoch = int(ckpt_manager.latest_checkpoint.split('-')[-1])
   # restoring the latest checkpoint in checkpoint_path
   ckpt.restore(ckpt_manager.latest_checkpoint)  # cargo el ultimo checkpoint disponible  
-  print("Restored from {}".format(ckpt.manager.latest_checkpoint))
+  print("Restored from {}".format(ckpt_manager.latest_checkpoint))
 
 else:
   print("Initializing from scratch.")
@@ -222,8 +248,9 @@ def train_step(inp, targ, enc_hidden):
 
   return batch_loss,enc_output  
 
+
 #entrenamiento del encoder text
-EPOCHS = 30
+EPOCHS = 100
 
 print("\n-------------  Starting %d epoch's training for text encoder model  ------------\n"% (EPOCHS) )
 print("Number of encoded images for training % d \n" % (len(sorted(set(img_name_train))))) #max 82783 images
@@ -246,13 +273,12 @@ for epoch in range(start_epoch , EPOCHS):
     total_loss += batch_loss # computo loss de cada epoch
 
     if batch % 100 == 0:
-      print('Epoch {} Batch {} Loss {:.4f}'.format(epoch + 1,
+     print('Epoch {} Batch {} Loss {:.4f}'.format(epoch + 1,
                                                    batch,
                                                    batch_loss.numpy()))  
 
-  if epoch % CKPT_EPOCH_SAVE == 0:
-      ckpt_manager.save()   ## almaceno checkpoint cada 2 epoch's
+  if (epoch!=0) and (epoch % CKPT_EPOCH_SAVE ) == 0:
+    ckpt_manager.save(checkpoint_number=epoch+1)   ## almaceno checkpoint cada 2 epoch's
   print('Epoch {} Loss {:.4f}'.format(epoch + 1,
                                       total_loss / steps_per_epoch))
   print('Time taken for 1 epoch {} sec\n'.format(time.time() - start))
-

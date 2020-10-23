@@ -30,7 +30,8 @@ pickle_tokenizer_path = '/workspace/pickle_saves/tokenizer/tokenizer.pickle'
 checkpoint_path = "/workspace/checkpoints/image_encoder_decoder/"  
 
 # Path para guardar la codificacion de las imagenes (features) 
-encoded_image_path = '/workspace/pickle_saves/encoded_images_eval/'
+#encoded_image_path = '/workspace/pickle_saves/encoded_images_eval/'
+encoded_image_path = '/workspace/pickle_saves/encoded_images/'
 
 # Prefijo de las imagenes
 image_prefix = 'COCO_train2014_'
@@ -81,12 +82,12 @@ hidden_layer = image_model.layers[-1].output  # guardo capa output
 # Obtengo el modelo para usar en el codificador de imagen
 image_features_extract_model = tf.keras.Model(new_input, hidden_layer)
 
-"""
+""" 
 # Retorna en base al path de una imagen la misma preprocesada por inceptionV3 guardada anteriormente -- No se usa?
 def map_func(img_name, cap):
   img_tensor = np.load(img_name.decode('utf-8')+'.npy') 
-  return img_tensor, cap """
-
+  return img_tensor, cap 
+""" 
 # Capa de atencion
 class BahdanauAttention(tf.keras.Model):
   def __init__(self, units):
@@ -200,7 +201,8 @@ def generate_embedding(image_path):
     
     features = encoder(img_tensor_val)  # aplico modelo del codificador y obtengo la codificacion de la imagen (feature)
     # save flatten image embedding (1,64,256) -> (16384,)
-    features = np.reshape(features,-1) 
+    features = np.reshape(features,-1)
+    #features = tf.nn.softmax(features)
     #print("-------------- Feature shape %s \n"%features.shape)
     image_name = image_path.rsplit('/',1)[1]
     # Guardo la feature de la imagen en encoded_image_path .
@@ -238,14 +240,15 @@ for annot in annotations['annotations']:  #not in order
 num_examples = 120000
 img_name_vector = all_img_name_vector [:num_examples] # 
 
-"""
+""" 
 # Show image by id   --- agregado
 
 image_prefix = "COCO_train2014_"
 def show_image(id):
   image = Image.open(image_folder + image_prefix + '%012d.jpg' % id )
   image.show()
-"""
+""" 
+
 # Sort images name list alphabetically (same as image_id)
 #file_arr = sorted(file_arr)
 #file_arr = shuffle(file_arr,random_state=1)
@@ -260,10 +263,10 @@ img_name_train= shuffle(img_name_train,random_state=1)
 img_name_val= shuffle(img_name_val,random_state=1)
 
 # Training images encoding
-#img_names_not_repeated = set(img_name_train)
+img_names_not_repeated = set(img_name_train)
 
 # Evaluation images encoding
-img_names_not_repeated = set(img_name_val)
+#img_names_not_repeated = set(img_name_val)
 
 print("\n---------------- Starting generation of image codifications ---------------\n")
 print("\nNumber of images to encode : ",len(img_names_not_repeated))

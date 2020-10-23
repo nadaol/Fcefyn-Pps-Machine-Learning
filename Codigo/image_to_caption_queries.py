@@ -16,20 +16,11 @@ from PIL import Image
 import pickle
 import glob
 
-
-
-
-
-
-
 ## ----- Dataset creation
 
 # Path para la lectura de las annotations
 annotation_folder = '/workspace/datasets/COCO/annotations'
 annotation_file = annotation_folder + '/captions_train2014.json'
-
-# Path para cargar el checkpoint del encoder y evaluar
-checkpoint_path = '/workspace/checkpoints/text_encoder/'
 
 # Path para cargar el tokenizer
 pickle_tokenizer_path = '/workspace/pickle_saves/tokenizer/tokenizer.pickle'
@@ -88,7 +79,7 @@ all_img_name_vector, img_name_val , all_captions, cap_val = all_all_img_name_vec
 
 # Mezclado de captions e imagenes (random_state 1) train y evaluacion
 #train set
-all_captions, all_img_name_vector = shuffle(all_captions,all_img_name_vector,random_state=1) 
+cap_train, img_name_train = shuffle(all_captions,all_img_name_vector,random_state=1) 
 #eval set
 cap_val, img_name_val = shuffle(cap_val,img_name_val,random_state=1) 
 
@@ -102,21 +93,24 @@ cap_val, img_name_val = shuffle(cap_val,img_name_val,random_state=1)
 
 # hyperparametro k de recall
 RECALL_K = 5
-EVAL_LIMIT = 32
+EVAL_LIMIT = 1000
+QUERIES_LIMIT = 100
 
 # Path para guardar la codificacion de las imagenes (features) 
-encoded_image_path = '/workspace/pickle_saves/encoded_images_eval/'
+#encoded_image_path = '/workspace/pickle_saves/encoded_images_eval/'
+encoded_image_path = '/workspace/pickle_saves/encoded_images/'
 
 # Path para guardar la salida del codificador
-encoded_captions_path = '/workspace/pickle_saves/encoded_captions_eval/'
- 
+#encoded_captions_path = '/workspace/pickle_saves/encoded_captions_eval/'
+encoded_captions_path = '/workspace/pickle_saves/encoded_captions/'
+
 # Obtengo objeto de loss
 loss_object = tf.keras.losses.MeanSquaredError()
 
 #Cargo las captions de evaluacion codificadas (.embt) en encoded_captions
 encoded_captions_paths=glob.glob(encoded_captions_path + '*.emdt') 
 encoded_captions_paths = sorted(encoded_captions_paths)
-encoded_captions_paths = encoded_captions_paths[:EVAL_LIMIT*5]
+encoded_captions_paths = encoded_captions_paths[:EVAL_LIMIT]
 encoded_captions = np.zeros((len(encoded_captions_paths),16384),dtype='float32')
 # (320,16384)
 for i in range(len(encoded_captions_paths)):
@@ -126,7 +120,7 @@ for i in range(len(encoded_captions_paths)):
 #Cargo las captions de evaluacion codificadas (.embt) en encoded_captions
 encoded_image_paths= glob.glob(encoded_image_path + '*.emb') # cargo todos los nombres de las codificaciones de las imagenes
 encoded_image_paths = sorted(encoded_image_paths)
-encoded_image_paths = encoded_image_paths[:EVAL_LIMIT]
+encoded_image_paths = encoded_image_paths[:(int)(EVAL_LIMIT/5)]
 
 # retorno lista con los errores y los id's de las k codificaciones mas cercanas a la codificacion de imagen pasada como argumento
 def search_nearest_k_encoded_captions(image_embedding_name_path):
@@ -161,10 +155,9 @@ def validQuery (nearest_k,image_embedding_path):
 	print("\n\nEmbedding Image Query : %s \n"%image_embedding_path)
 	for error,encoded_caption_id,caption_uid in nearest_k:
 		tf.print("Retrieved caption_id [%s] , error : " %(encoded_caption_id),error)
-		cap_seq_to_string(cap_val[caption_uid])
+		cap_seq_to_string(cap_train[caption_uid-1])
 		if(encoded_caption_id == image_id): # imagen -> 1 captions  = 1
 			relevant_elements_count+=1
-            #print("caption id %s \n"%encoded_caption_id)
 	return relevant_elements_count
 
 #print("valid queries %d , total queries : 1 , image_id : %d"% (valid_queries,i))
@@ -178,6 +171,8 @@ def get_Recall():
 	for i,encoded_image_path in enumerate(encoded_image_paths):
 		relevant_captions_count+=validQuery(search_nearest_k_encoded_captions(encoded_image_path),encoded_image_path)
 		i+=1
+		if(i == QUERIES_LIMIT):
+			break
 		if(i % 10 == 0):
 			print("\n----- Queries : %d -----\n"%i)
 	print("\n\nRelevant captions retrieved : %d , Total relevant captions %d \n "%(relevant_captions_count,i*5))

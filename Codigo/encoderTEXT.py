@@ -32,13 +32,14 @@ annotation_folder = '/workspace/datasets/COCO/annotations'
 annotation_file = annotation_folder + '/captions_train2014.json'
 
 # Path para cargar el checkpoint del encoder y evaluar                         
-checkpoint_path = '/workspace/checkpoints/text_encoder/'
+checkpoint_path = '/workspace/checkpoints/encoder_text/'
 
 # Path para cargar el tokenizer
 pickle_tokenizer_path = '/workspace/pickle_saves/tokenizer/tokenizer.pickle'
 
 # Path para guardar la salida del codificador
-encoded_captions_path = '/workspace/pickle_saves/encoded_captions_eval/'
+#encoded_captions_path = '/workspace/pickle_saves/encoded_captions_eval/'
+encoded_captions_path = '/workspace/pickle_saves/encoded_captions/'
 
 # Lectura de annotations 
 with open(annotation_file, 'r') as f:
@@ -113,16 +114,19 @@ all_img_name_vector, img_name_val , all_captions, cap_val = all_all_img_name_vec
 
 print("firs eval image before shuffle : ",img_name_val[0])
 
+#Limitar set de evaluacion para no codificar todo el set
+
+
 # Mezclado de captions e imagenes (random_state 1) train y evaluacion
-#train set
-all_captions, all_img_name_vector = shuffle(all_captions,all_img_name_vector,random_state=1) 
 #eval set
-cap_val, img_name_val = shuffle(cap_val,img_name_val,random_state=1) 
+cap_val, img_name_val = shuffle(cap_val,img_name_val,random_state=1)
+#train set
+cap_train , img_name_train = shuffle(all_captions,all_img_name_vector,random_state=1) 
 
 # print(all_img_name_vector[0])
 # print(img_name_val[0])
-print(cap_seq_to_string(cap_val[548]))
-""" 
+#print(cap_seq_to_string(cap_val[548]))
+
 # Parametros del modelo
 BUFFER_SIZE = 1000
 BATCH_SIZE = 64
@@ -176,7 +180,7 @@ ckpt = tf.train.Checkpoint(encoder=encoder,
                            optimizer = optimizer)
 
 # Establezco el checkpoint manager a usar (limite para 5 ultimos checkpoints)
-ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=5)
+ckpt_manager = tf.train.CheckpointManager(ckpt,checkpoint_path, max_to_keep=5)
 
 # Restoring the latest checkpoint in checkpoint_path
 ckpt.restore(ckpt_manager.latest_checkpoint) 
@@ -193,20 +197,24 @@ def evaluate(caption):
   return enc_output
 
 # Cargo dataset con los captions ya procesados (all_captions)
-dataset = tf.data.Dataset.from_tensor_slices((cap_val,img_name_val))
+#dataset = tf.data.Dataset.from_tensor_slices((cap_val,img_name_val))
+#dataset = dataset.batch(BATCH_SIZE) # divido en batch
+#dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE) # optimizado para la operacion 
+#print("caption [0] : %s \n" %cap_val[0])
+
+dataset = tf.data.Dataset.from_tensor_slices((cap_train,img_name_train))
 dataset = dataset.batch(BATCH_SIZE) # divido en batch
 dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE) # optimizado para la operacion 
-#print("caption [0] : %s \n" %cap_val[0])
 
 for (batch,(caption,img_name)) in enumerate(dataset):
     text_encoded_vec = evaluate(caption)
     print(text_encoded_vec[0])
     break
-""" 
+
 print("------------------ Generating encoded captions and saving them in %s ----------------\n" % (encoded_captions_path) )
-print("Size of eval dataset : %d \n" % len(cap_val))
-print("First 3 eval images : %s \n" % (img_name_val[:3]))
-""" 
+print("Size of train dataset : %d \n" % len(cap_train))
+print("First 3 train images : %s \n" % (img_name_train[:3]))
+
 #Codifica las captions del set de evalucacion y los guarda en encoded_captions_path
 text_id = 0
 for (batch,(caption,img_name)) in enumerate(dataset):
@@ -225,7 +233,7 @@ for (batch,(caption,img_name)) in enumerate(dataset):
 def load_encoded_caption(img_id,text_id):
   with open(encoded_captions_path + 'encodedText_%012d_%012d.emdt' % (img_id,text_id), 'rb') as handle:
     return pickle.load(handle)
-""" 
+ 
 #vec = load_encoded_caption(9,1)
 #print(vec)
 #print(vec[127]) 
