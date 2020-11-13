@@ -31,7 +31,7 @@ annotation_folder = '/workspace/datasets/COCO/annotations'
 annotation_file = annotation_folder + '/captions_train2014.json'
 
 # Path para cargar las codificaciones de imagenes del set de entrenamiento
-encoded_image_path = '/workspace/pickle_saves/encoded_images/'
+encoded_image_path = '/workspace/pickle_saves/encoded_train_images/'
 
 # Path para la lectura de las imagenes
 image_folder = "/workspace/datasets/COCO/train2014/"    
@@ -68,7 +68,7 @@ for annot in annotations['annotations']:
     all_captions.append(caption)                      # Guardo respectivo caption
 
 # Limitar a num_example el set de captions-imágenes (414113 captions en total) para luego usar en el entrenamiento
-num_examples = 120000
+num_examples = len(all_captions)
 all_captions = all_captions[:num_examples]
 all_img_name_vector = all_img_name_vector[:num_examples]
 
@@ -94,13 +94,13 @@ max_length = calc_max_length(all_captions)
 
 def cap_seq_to_string(caption_seq):
   sentence = []
-  for word_number in caption_seq:
-    sentence.append(tokenizer.index_word[word_number])
+  for word_index in caption_seq:
+    sentence.append(tokenizer.index_word[word_index])
   return sentence
 
 # Separamos image_name_vector (paths de las imagenes) y cap_vector (captions correspondientes) para entrenamiento 80% y evaluación 20%. ver que la division sea igual al de la evaluacion (en encoderTEXT)
 TRAIN_PERCENTAGE = 0.8
-train_examples = int (TRAIN_PERCENTAGE*num_examples)
+train_examples = int (TRAIN_PERCENTAGE*num_examples)-26
 img_name_train, img_name_val , cap_train, cap_val = all_img_name_vector[:train_examples] , all_img_name_vector[train_examples:] , all_captions[:train_examples] , all_captions[train_examples:]
 
 # Mezclado de captions e imagenes 
@@ -114,13 +114,13 @@ eval_captions, img_name_eval = shuffle(cap_val,           #no se usa aca
                                           random_state=1)
 
 
-i = 0
-for (img,cap) in zip(img_name_train,train_captions):
-        print("Image name : %s ," % img)
-        print("Caption : %s \n " % cap_seq_to_string(cap))
-        i = i + 1
-        if(i==1):
-                break
+#i = 0
+#for (img,cap) in zip(img_name_train,train_captions):
+#        print("Input caption : %s \n " % cap_seq_to_string(cap))
+#        print("Correlated image embbeding name for training: %s \n\n" % img)
+#        i = i + 1
+#        if(i==20):
+#                break
 
 print("Train dataset size %d \n" % (len(train_captions)))
 print("Evaluation dataset size %d \n" % (len(eval_captions)))
@@ -148,16 +148,7 @@ def map_func(img_name, cap):
 # Creo el dataset con el path de las imagenes y los captions de entrenamiento (img_name_train, cap_train)
 dataset = tf.data.Dataset.from_tensor_slices((img_name_train,train_captions))
 
-#print first 10 train set
-i = 0
-for (img,cap) in zip(img_name_train,train_captions):
-	print("Image name : %s ," % img)
-	print("Caption : %s \n " % cap_seq_to_string(cap))
-	i = i + 1
-	if(i==10):
-		break
-
-# Cargar numpy ya guardado de la imagen codificada en encoderIMAGE
+ Cargar numpy ya guardado de la imagen codificada en encoderIMAGE
 dataset = dataset.map(lambda item1, item2: tf.numpy_function(
           map_func, [item1, item2], [tf.float32, tf.int32]),
           num_parallel_calls=tf.data.experimental.AUTOTUNE)
@@ -166,8 +157,9 @@ dataset = dataset.map(lambda item1, item2: tf.numpy_function(
 dataset = dataset.shuffle(BUFFER_SIZE).batch(BATCH_SIZE)
 dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE) # optimizado para la operacion
 
-example_input_batch, example_target_batch = next(iter(dataset))
-print(example_input_batch.shape, example_target_batch.shape)
+print("Train cap %s , decoded %s \n\n" % (train_captions[0],cap_seq_to_string(train_captions[0])))
+example_target_batch,example_input_batch = next(iter(dataset))
+print("Input caption : %s \nCorrelated target image for train %s\n\n" % (cap_seq_to_string(np.array(example_input_batch[0])),example_target_batch[0]))
 
 ## Clase del modelo ENCODER (igual al encoderTEXT)
 
@@ -224,7 +216,7 @@ ckpt_manager = tf.train.CheckpointManager(ckpt, checkpoint_path, max_to_keep=CKP
 start_epoch = 0
 
 if ckpt_manager.latest_checkpoint: # si existen checkpoints
-  start_epoch = int(ckpt_manager.latest_checkpoint.split('-')[-1])
+  start_epoch = int(ckpt_manager.latest_checkpoint.split('-')[-1]) + 1
   # restoring the latest checkpoint in checkpoint_path
   ckpt.restore(ckpt_manager.latest_checkpoint)  # cargo el ultimo checkpoint disponible  
   print("Restored from {}".format(ckpt_manager.latest_checkpoint))
@@ -248,7 +240,7 @@ def train_step(inp, targ, enc_hidden):
 
   return batch_loss,enc_output  
 
-
+""" 
 #entrenamiento del encoder text
 EPOCHS = 100
 
@@ -282,3 +274,4 @@ for epoch in range(start_epoch , EPOCHS):
   print('Epoch {} Loss {:.4f}'.format(epoch + 1,
                                       total_loss / steps_per_epoch))
   print('Time taken for 1 epoch {} sec\n'.format(time.time() - start))
+""" 

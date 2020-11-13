@@ -77,7 +77,7 @@ for annot in annotations['annotations']:  #not in order
 
 # Limitar a num_examples captions-imagenes (414113 captions en total)(82783 images) para luego usar en el entrenamiento
 #  num_images ~ num_examples/5
-num_examples = 120000
+num_examples = len(all_all_captions)
 all_captions = all_all_captions[:num_examples]   # string train captions
 all_img_name_vector = all_all_img_name_vector[:num_examples] # 
 
@@ -127,7 +127,7 @@ for img, path in image_dataset:
     path_of_feature = p.numpy().decode("utf-8") 
     image_id = np.char.rpartition(np.char.rpartition(path_of_feature,'_')[2],'.')[0]
     np.save(prepro_images_folder + image_prefix + image_id , bf.numpy())  #guardo batch features en un zip 
-""" 
+"""
 
  # Funcion para calcular el tamaño maximo de los elementos t de tensor
 def calc_max_length(tensor):
@@ -244,7 +244,7 @@ class CNN_Encoder(tf.keras.Model):
 
     def call(self, x):
         x = self.fc(x)    # Fully connected layer
-        x = tf.nn.relu(x) 
+        x = tf.nn.relu(x)
         return x
 
 
@@ -285,7 +285,7 @@ class RNN_Decoder(tf.keras.Model):
 
     # Salida de FC2
     x = self.fc2(x)
-   
+
     return x, state, attention_weights
 
   def reset_state(self, batch_size):
@@ -320,7 +320,7 @@ ckpt_manager = tf.train.CheckpointManager(ckpt,
 start_epoch = 0
 
 if ckpt_manager.latest_checkpoint: # si existen checkpoints
-  start_epoch = int(ckpt_manager.latest_checkpoint.split('-')[-1])
+  start_epoch = int(ckpt_manager.latest_checkpoint.split('-')[-1]) + 1
   # restoring the latest checkpoint in checkpoint_path
   ckpt.restore(ckpt_manager.latest_checkpoint)  # cargo el ultimo checkpoint disponible 
   print("Restored from {}".format(ckpt_manager.latest_checkpoint))
@@ -384,14 +384,14 @@ for epoch in range(start_epoch, EPOCHS):
     # storing the epoch end loss value to plot later
     loss_plot.append(total_loss / num_steps)
 
-    if epoch % CHPK_SAVE == 0:
-      ckpt_manager.save(checkpoint_number=epoch+1)
+    if ( (epoch+1) % CHPK_SAVE ) == 0:
+      ckpt_manager.save(checkpoint_number=epoch)
 
     print ('Epoch {} Loss {:.6f}'.format(epoch + 1,
                                          total_loss/num_steps),flush=True)
     print ('Time taken for 1 epoch {} sec\n'.format(time.time() - start)) 
-""" 
 
+"""
 def evaluate(image):
   attention_plot = np.zeros((max_length, attention_features_shape))  # vacio vector
 
@@ -441,17 +441,24 @@ def plot_attention(image, result, attention_plot):
 
 # Compara con imagenes específicas las captions real y obtenida
 
-# captions on the validation set
-rid = np.random.randint(0, len(img_name_val))
+# random image in evaluation set
+""" rid = np.random.randint(0, len(img_name_val))
 image = image_folder + img_name_val[rid] + ".jpg"
 print('Image : ',image)
 real_caption = ' '.join([tokenizer.index_word[i] for i in cap_val[rid] if i not in [0]])
-result, attention_plot = evaluate(image)
+result, attention_plot = evaluate(image) """
 
-print ('Real Caption:', real_caption)
+
+#specific image in evalutaion set
+image_id = "000000465375"
+image = image_folder + image_prefix + image_id + ".jpg"
+result,attention_plot = evaluate(image)
+
+#print ('Real Caption:', real_caption)
 print ('Prediction Caption:', ' '.join(result))
-plot_attention(image, result, attention_plot)
+#plot_attention(image, result, attention_plot)
 
+""" 
 image_url = 'https://tensorflow.org/images/surf.jpg'
 image_extension = image_url[-4:]
 image_path = tf.keras.utils.get_file('image'+image_extension,
@@ -461,4 +468,5 @@ result, attention_plot = evaluate(image_path)
 print ('Prediction Caption:', ' '.join(result))
 plot_attention(image_path, result, attention_plot)
 # opening the image
-Image.open(image_path)
+Image.open(image_path) """
+

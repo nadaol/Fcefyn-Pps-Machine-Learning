@@ -38,8 +38,8 @@ checkpoint_path = '/workspace/checkpoints/encoder_text/'
 pickle_tokenizer_path = '/workspace/pickle_saves/tokenizer/tokenizer.pickle'
 
 # Path para guardar la salida del codificador
-#encoded_captions_path = '/workspace/pickle_saves/encoded_captions_eval/'
-encoded_captions_path = '/workspace/pickle_saves/encoded_captions/'
+#encoded_captions_path = '/workspace/pickle_saves/encoded_eval_captions/'
+encoded_captions_path = '/workspace/pickle_saves/encoded_train_captions/'
 
 # Lectura de annotations 
 with open(annotation_file, 'r') as f:
@@ -60,7 +60,7 @@ for annot in annotations['annotations']: # annotation['annotations'][0] = {'imag
 
 # Limitar a num_examples captions-imagenes (414113 captions en total)(82783 images) para luego usar en el entrenamiento
 #num_examples = 80000
-num_examples = 120000
+num_examples = len(all_all_img_name_vector)
 all_all_captions = all_all_captions[:num_examples]   # string train captions
 all_all_img_name_vector = all_all_img_name_vector[:num_examples] # 
 
@@ -103,39 +103,37 @@ all_all_captions = tf.keras.preprocessing.sequence.pad_sequences(all_all_caption
 
 #caption int array to caption sentence
 def cap_seq_to_string(caption_seq):
+  sentence = []
   for word_number in caption_seq:
-    print("%s " % tokenizer.index_word[word_number],end='')
+    sentence.append(tokenizer.index_word[word_number])
+  return sentence
+
+BATCH_SIZE = 64
 
 #Split train,val dataset
 TRAIN_PERCENTAGE = 0.8
 train_examples = int (TRAIN_PERCENTAGE*num_examples)
-all_img_name_vector, img_name_val , all_captions, cap_val = all_all_img_name_vector[:train_examples] , all_all_img_name_vector[train_examples:] , all_all_captions[:train_examples] ,all_all_captions[train_examples:]
+train_examples = train_examples - (train_examples % BATCH_SIZE)
+eval_rest = ((num_examples-(train_examples+1)) % 64) 
+img_name_train, img_name_val ,cap_train, cap_val = all_all_img_name_vector[:train_examples] , all_all_img_name_vector[train_examples+1:(num_examples-eval_rest)] , all_all_captions[:train_examples] ,all_all_captions[train_examples+1:(num_examples-eval_rest)]
 
+print("Caption Train set [%d - %d] \n Caption Eval set [%d - %d]"%(0,train_examples,train_examples+1,(num_examples-eval_rest)))
 
-print("firs eval image before shuffle : ",img_name_val[0])
-
-#Limitar set de evaluacion para no codificar todo el set
-
-
-# Mezclado de captions e imagenes (random_state 1) train y evaluacion
-#eval set
-cap_val, img_name_val = shuffle(cap_val,img_name_val,random_state=1)
-#train set
-cap_train , img_name_train = shuffle(all_captions,all_img_name_vector,random_state=1) 
+#Captions set to encode
+captions_to_encode = cap_train
+correlated_image_names = img_name_train
 
 # print(all_img_name_vector[0])
 # print(img_name_val[0])
-#print(cap_seq_to_string(cap_val[548]))
-
+print("First caption after shuffle : %s \n" % (cap_seq_to_string(captions_to_encode[0])))
+print("Correlated image : %s \n" , img_name_val[0])
 # Parametros del modelo
 BUFFER_SIZE = 1000
-BATCH_SIZE = 64
 embedding_dim = 256
 units = 1024
 output_units = 512
 output_size = 16384
 vocab_inp_size = top_k + 1 # ojooo
-
 
 # No tiene atencion?
 class Encoder(tf.keras.Model):
@@ -196,26 +194,18 @@ def evaluate(caption):
   enc_output, enc_hidden = encoder(caption, enc_hidden) 
   return enc_output
 
-# Cargo dataset con los captions ya procesados (all_captions)
-#dataset = tf.data.Dataset.from_tensor_slices((cap_val,img_name_val))
-#dataset = dataset.batch(BATCH_SIZE) # divido en batch
-#dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE) # optimizado para la operacion 
-#print("caption [0] : %s \n" %cap_val[0])
-
-dataset = tf.data.Dataset.from_tensor_slices((cap_train,img_name_train))
+# Creo el dataset con captions_to_encode y correlated_image_names
+dataset = tf.data.Dataset.from_tensor_slices((captions_to_encode,correlated_image_names))
 dataset = dataset.batch(BATCH_SIZE) # divido en batch
 dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE) # optimizado para la operacion 
 
-for (batch,(caption,img_name)) in enumerate(dataset):
-    text_encoded_vec = evaluate(caption)
-    print(text_encoded_vec[0])
-    break
+caption_batch,correlated_img_batch = next(iter(dataset))
 
 print("------------------ Generating encoded captions and saving them in %s ----------------\n" % (encoded_captions_path) )
-print("Size of train dataset : %d \n" % len(cap_train))
-print("First 3 train images : %s \n" % (img_name_train[:3]))
+print("Size of the set of captions to encode : %d \n" % len(captions_to_encode))
+print("First captions to encode : %s , correlated image %s \n" % (cap_seq_to_string(np.array(caption_batch[0])),correlated_img_batch[0]) )
 
-#Codifica las captions del set de evalucacion y los guarda en encoded_captions_path
+#Codifica las captions de captions_to_encode y los guarda en encoded_captions_path
 text_id = 0
 for (batch,(caption,img_name)) in enumerate(dataset):
     text_encoded_vec = evaluate(caption) # salida del encoder
@@ -228,7 +218,6 @@ for (batch,(caption,img_name)) in enumerate(dataset):
         pickle.dump(text_encoded_vec[i].numpy(), handle, protocol=pickle.HIGHEST_PROTOCOL) 
     if batch % 10==0:
       print("batch",batch)
-
  # Carga una caption codificada ,por img_id y text_id  --- agregado
 def load_encoded_caption(img_id,text_id):
   with open(encoded_captions_path + 'encodedText_%012d_%012d.emdt' % (img_id,text_id), 'rb') as handle:

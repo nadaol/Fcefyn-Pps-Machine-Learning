@@ -30,8 +30,8 @@ pickle_tokenizer_path = '/workspace/pickle_saves/tokenizer/tokenizer.pickle'
 checkpoint_path = "/workspace/checkpoints/image_encoder_decoder/"  
 
 # Path para guardar la codificacion de las imagenes (features) 
-#encoded_image_path = '/workspace/pickle_saves/encoded_images_eval/'
-encoded_image_path = '/workspace/pickle_saves/encoded_images/'
+encoded_image_path = '/workspace/pickle_saves/encoded_eval_images/'
+#encoded_image_path = '/workspace/pickle_saves/encoded_train_images/'
 
 # Prefijo de las imagenes
 image_prefix = 'COCO_train2014_'
@@ -237,7 +237,7 @@ for annot in annotations['annotations']:  #not in order
 
 # Limitar a num_examples captions-imagenes (414113 captions en total)(82783 images) para luego usar en el entrenamiento
 #num_examples = 80000
-num_examples = 120000
+num_examples = len(all_img_name_vector)
 img_name_vector = all_img_name_vector [:num_examples] # 
 
 """ 
@@ -256,17 +256,21 @@ def show_image(id):
 #Split train,val dataset
 TRAIN_PERCENTAGE = 0.8
 train_examples = int (TRAIN_PERCENTAGE*num_examples)
-img_name_train, img_name_val  = img_name_vector[:train_examples] , img_name_vector[train_examples:]
+train_examples = train_examples - (train_examples % BATCH_SIZE)
+eval_rest = ((num_examples-(train_examples+1)) % 64)
+img_name_train, img_name_val  = img_name_vector[:train_examples] , img_name_vector[train_examples+1:(num_examples-eval_rest)]
 
 # Mezclado de captions e imagenes (random_state 1)
 img_name_train= shuffle(img_name_train,random_state=1)
 img_name_val= shuffle(img_name_val,random_state=1)
 
+print("Image Train set [%d - %d] \n Image Eval set [%d - %d]"%(0,train_examples,train_examples+1,(num_examples-eval_rest)))
+
 # Training images encoding
-img_names_not_repeated = set(img_name_train)
+#img_names_not_repeated = set(img_name_train)
 
 # Evaluation images encoding
-#img_names_not_repeated = set(img_name_val)
+img_names_not_repeated = set(img_name_val)
 
 print("\n---------------- Starting generation of image codifications ---------------\n")
 print("\nNumber of images to encode : ",len(img_names_not_repeated))

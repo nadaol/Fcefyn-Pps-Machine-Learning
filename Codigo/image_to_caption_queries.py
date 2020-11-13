@@ -44,7 +44,7 @@ for annot in annotations['annotations']: # annotation['annotations'][0] = {'imag
 
 # Limitar a num_examples captions-imagenes (414113 captions en total)(82783 images) para luego usar en el entrenamiento
 #num_examples = 80000
-num_examples = 120000
+num_examples = len(all_all_img_name_vector)
 all_all_captions = all_all_captions[:num_examples]   # string train captions
 all_all_img_name_vector = all_all_img_name_vector[:num_examples] # 
 
@@ -72,17 +72,19 @@ def cap_seq_to_string(caption_seq):
     print("%s " % tokenizer.index_word[word_number],end='',flush=True)
   print("\n\n")
 
+BATCH_SIZE = 64
+
 #Split train,val dataset
 TRAIN_PERCENTAGE = 0.8
 train_examples = int (TRAIN_PERCENTAGE*num_examples)
-all_img_name_vector, img_name_val , all_captions, cap_val = all_all_img_name_vector[:train_examples] , all_all_img_name_vector[train_examples:] , all_all_captions[:train_examples] ,all_all_captions[train_examples:]
+train_examples = train_examples - (train_examples % BATCH_SIZE)
+eval_rest = ((num_examples-(train_examples+1)) % 64) 
+img_name_train, img_name_val ,cap_train, cap_val = all_all_img_name_vector[:train_examples] , all_all_img_name_vector[train_examples+1:(num_examples-eval_rest)] , all_all_captions[:train_examples] ,all_all_captions[train_examples+1:(num_examples-eval_rest)]
 
-# Mezclado de captions e imagenes (random_state 1) train y evaluacion
-#train set
-cap_train, img_name_train = shuffle(all_captions,all_img_name_vector,random_state=1) 
-#eval set
-cap_val, img_name_val = shuffle(cap_val,img_name_val,random_state=1) 
+print("Caption Train set [%d - %d] \n Caption Eval set [%d - %d]"%(0,train_examples,train_examples+1,(num_examples-eval_rest)))
 
+#cap_seq_to_string(cap_val[0])
+#print("Correlated image : %s \n" , img_name_val[0])
 
 
 # Comparar todas las codificaciones de imagenes del set de evaluacion con todas las captions codificadas.
@@ -97,12 +99,12 @@ EVAL_LIMIT = 1000
 QUERIES_LIMIT = 100
 
 # Path para guardar la codificacion de las imagenes (features) 
-#encoded_image_path = '/workspace/pickle_saves/encoded_images_eval/'
-encoded_image_path = '/workspace/pickle_saves/encoded_images/'
+#encoded_image_path = '/workspace/pickle_saves/encoded_eval_images/'
+encoded_image_path = '/workspace/pickle_saves/encoded_train_images/'
 
 # Path para guardar la salida del codificador
-#encoded_captions_path = '/workspace/pickle_saves/encoded_captions_eval/'
-encoded_captions_path = '/workspace/pickle_saves/encoded_captions/'
+#encoded_captions_path = '/workspace/pickle_saves/encoded_eval_captions/'
+encoded_captions_path = '/workspace/pickle_saves/encoded_train_captions/'
 
 # Obtengo objeto de loss
 loss_object = tf.keras.losses.MeanSquaredError()
@@ -148,7 +150,6 @@ def search_nearest_k_encoded_captions(image_embedding_name_path):
 
     return nearest_k
 
-
 def validQuery (nearest_k,image_embedding_path):
 	relevant_elements_count = 0
 	image_id = image_embedding_path.rsplit('/',1)[1].split('_')[2][:12]
@@ -156,8 +157,10 @@ def validQuery (nearest_k,image_embedding_path):
 	for error,encoded_caption_id,caption_uid in nearest_k:
 		tf.print("Retrieved caption_id [%s] , error : " %(encoded_caption_id),error)
 		cap_seq_to_string(cap_train[caption_uid-1])
+		#cap_seq_to_string(cap_val[caption_uid-1])
 		if(encoded_caption_id == image_id): # imagen -> 1 captions  = 1
-			relevant_elements_count+=1
+			#relevant_elements_count+=1
+			relevant_elements_count=1
 	return relevant_elements_count
 
 #print("valid queries %d , total queries : 1 , image_id : %d"% (valid_queries,i))
@@ -165,8 +168,8 @@ def validQuery (nearest_k,image_embedding_path):
 
 def get_Recall():
 	print("-------------- Calculating recall@%d for a %d size image set and %d size captions set  -------------- \n\n" % (RECALL_K,len(encoded_image_paths),len(encoded_captions_paths)))
-	print(encoded_image_paths)
-	print(encoded_captions_paths)
+	#print(encoded_image_paths)
+	#print(encoded_captions_paths)
 	relevant_captions_count = 0
 	for i,encoded_image_path in enumerate(encoded_image_paths):
 		relevant_captions_count+=validQuery(search_nearest_k_encoded_captions(encoded_image_path),encoded_image_path)
@@ -175,8 +178,10 @@ def get_Recall():
 			break
 		if(i % 10 == 0):
 			print("\n----- Queries : %d -----\n"%i)
-	print("\n\nRelevant captions retrieved : %d , Total relevant captions %d \n "%(relevant_captions_count,i*5))
-	return (relevant_captions_count/(i*5))
+	#print("\n\nRelevant captions retrieved : %d , Total relevant captions %d \n "%(relevant_captions_count,i*5))
+	print("\n\nValid queries : %d , Total queries %d \n "%(relevant_captions_count,i))
+    #return (relevant_captions_count/(i*5))
+	return (relevant_captions_count/(i))
 
 print("\nRecall@%d : %f"%(RECALL_K,get_Recall()*100))
     
