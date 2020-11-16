@@ -3,37 +3,41 @@ import matplotlib.pyplot as plot
 
 # PATHS
 file_name = "log.txt"
-log_path = "/home/admint/PycharmProjects/GraficoLogLoss/logs/"
+log_path = "./logs/"
 file_path = log_path + file_name
 
 # Abrir y leer log.txt
 
-totalEpochs = 60    # cantidad total de epochs
 numEpoch = []       # lista de epochs
-valLoss = []        # lista de loss
+train_Loss = []        # train_loss
+eval_Loss = []
 
 f = open(file_path, "r")
 linea = f.readlines()
 
 indice = 0
 for renglon in linea:
-    #print("Linea %d: %s" %(indice,renglon))
-    resultado = re.search(r"Epoch\s(\d+)\sLoss\s(\d+.\d+)", renglon)
-    if resultado is not None:
-        numEpoch.append( int(resultado.group(1)) )
-        valLoss.append( float(resultado.group(2)) )
 
-    ## Imprimir lista dual
+    Eval_line = re.search(r"Evaluation Set loss : (\d+.\d+)",renglon)
+    if Eval_line is not None:
+        eval_Loss.append(float(Eval_line.group(1)))
+
+    Train_line = re.search(r"Epoch\s(\d+)\sLoss\s(\d+.\d+)", renglon)
+    if Train_line is not None:
+        numEpoch.append( int(Train_line.group(1)) )
+        train_Loss.append( float(Train_line.group(2)) )
 
 for i in range(len(numEpoch)):
-    print("numEpoch: %d -- Loss: %f" % (numEpoch[i], valLoss[i]))
+    print("numEpoch: %d -- Train Loss: %f Evalutaion Loss : %f \n" % (numEpoch[i], train_Loss[i],eval_Loss[i]))
 
 ## Generar grafico y mostrar
 
-plot.plot(numEpoch, valLoss)
+plot.plot(numEpoch, train_Loss,'g',label='Training Loss')
+plot.plot(numEpoch,eval_Loss,'r',label='Evalutaion Loss')
+plot.legend(loc='lower left')
 plot.xlabel("Epoch")
-plot.ylabel("Loss")
-plot.title("CURVA DE LOSS")
+plot.ylabel("Losses")
+plot.title("Losses in encoder text training")
 
 plot.show()
 
