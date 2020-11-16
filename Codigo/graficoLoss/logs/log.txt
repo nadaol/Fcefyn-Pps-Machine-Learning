@@ -1,0 +1,539 @@
+tf_container  | Epoch 1 Batch 100 Loss 1.0213
+tf_container  | Epoch 1 Batch 200 Loss 0.9149
+tf_container  | Epoch 1 Batch 300 Loss 0.9137
+tf_container  | Epoch 1 Batch 400 Loss 0.8163
+tf_container  | Epoch 1 Batch 500 Loss 0.7745
+tf_container  | Epoch 1 Batch 600 Loss 0.7206
+tf_container  | Epoch 1 Batch 700 Loss 0.7531
+tf_container  | Epoch 1 Batch 800 Loss 0.7007
+tf_container  | Epoch 1 Batch 900 Loss 0.6688
+tf_container  | Epoch 1 Batch 1000 Loss 0.7177
+tf_container  | Epoch 1 Batch 1100 Loss 0.7375
+tf_container  | Epoch 1 Batch 1200 Loss 0.7543
+tf_container  | Epoch 1 Batch 1300 Loss 0.6543
+tf_container  | Epoch 1 Batch 1400 Loss 0.6728
+tf_container  | Epoch 1 Loss 0.784152
+tf_container  | Time taken for 1 epoch 1073.8507573604584 sec
+tf_container  |
+tf_container  | Epoch 2 Batch 0 Loss 0.6695
+tf_container  | Epoch 2 Batch 100 Loss 0.6962
+tf_container  | Epoch 2 Batch 200 Loss 0.6358
+tf_container  | Epoch 2 Batch 300 Loss 0.7131
+tf_container  | Epoch 2 Batch 400 Loss 0.6890
+tf_container  | Epoch 2 Batch 500 Loss 0.6499
+tf_container  | Epoch 2 Batch 600 Loss 0.6226
+tf_container  | Epoch 2 Batch 700 Loss 0.6694
+tf_container  | Epoch 2 Batch 800 Loss 0.6233
+tf_container  | Epoch 2 Batch 900 Loss 0.6042
+tf_container  | Epoch 2 Batch 1000 Loss 0.6445
+tf_container  | Epoch 2 Batch 1100 Loss 0.6643
+tf_container  | Epoch 2 Batch 1200 Loss 0.6874
+tf_container  | Epoch 2 Batch 1300 Loss 0.6035
+tf_container  | Epoch 2 Batch 1400 Loss 0.6217
+tf_container  | Epoch 2 Loss 0.645753
+tf_container  | Time taken for 1 epoch 537.7411866188049 sec
+tf_container  |
+tf_container  | Epoch 3 Batch 0 Loss 0.6183
+tf_container  | Epoch 3 Batch 100 Loss 0.6415
+tf_container  | Epoch 3 Batch 200 Loss 0.5883
+tf_container  | Epoch 3 Batch 300 Loss 0.6637
+tf_container  | Epoch 3 Batch 400 Loss 0.6476
+tf_container  | Epoch 3 Batch 500 Loss 0.6077
+tf_container  | Epoch 3 Batch 600 Loss 0.5830
+tf_container  | Epoch 3 Batch 700 Loss 0.6364
+tf_container  | Epoch 3 Batch 800 Loss 0.5956
+tf_container  | Epoch 3 Batch 900 Loss 0.5720
+tf_container  | Epoch 3 Batch 1000 Loss 0.6054
+tf_container  | Epoch 3 Batch 1100 Loss 0.6293
+tf_container  | Epoch 3 Batch 1200 Loss 0.6440
+tf_container  | Epoch 3 Batch 1300 Loss 0.5704
+tf_container  | Epoch 3 Batch 1400 Loss 0.5909
+tf_container  | Epoch 3 Loss 0.605138
+tf_container  | Time taken for 1 epoch 467.1461977958679 sec
+tf_container  |
+tf_container  | Epoch 4 Batch 0 Loss 0.5895
+tf_container  | Epoch 4 Batch 100 Loss 0.6105
+tf_container  | Epoch 4 Batch 200 Loss 0.5562
+tf_container  | Epoch 4 Batch 300 Loss 0.6351
+tf_container  | Epoch 4 Batch 400 Loss 0.6175
+tf_container  | Epoch 4 Batch 500 Loss 0.5756
+tf_container  | Epoch 4 Batch 600 Loss 0.5533
+tf_container  | Epoch 4 Batch 700 Loss 0.6111
+tf_container  | Epoch 4 Batch 800 Loss 0.5715
+tf_container  | Epoch 4 Batch 900 Loss 0.5435
+tf_container  | Epoch 4 Batch 1000 Loss 0.5858
+tf_container  | Epoch 4 Batch 1100 Loss 0.5996
+tf_container  | Epoch 4 Batch 1200 Loss 0.6106
+tf_container  | Epoch 4 Batch 1300 Loss 0.5406
+tf_container  | Epoch 4 Batch 1400 Loss 0.5664
+tf_container  | Epoch 4 Loss 0.576535
+tf_container  | Time taken for 1 epoch 386.87497782707214 sec
+tf_container  |
+tf_container  | Epoch 5 Batch 0 Loss 0.5653
+tf_container  | Epoch 5 Batch 100 Loss 0.5843
+tf_container  | Epoch 5 Batch 200 Loss 0.5326
+tf_container  | Epoch 5 Batch 300 Loss 0.6129
+tf_container  | Epoch 5 Batch 400 Loss 0.5861
+tf_container  | Epoch 5 Batch 500 Loss 0.5529
+tf_container  | Epoch 5 Batch 600 Loss 0.5305
+tf_container  | Epoch 5 Batch 700 Loss 0.5851
+tf_container  | Epoch 5 Batch 800 Loss 0.5502
+tf_container  | Epoch 5 Batch 900 Loss 0.5233
+tf_container  | Epoch 5 Batch 1000 Loss 0.5629
+tf_container  | Epoch 5 Batch 1100 Loss 0.5745
+tf_container  | Epoch 5 Batch 1200 Loss 0.5867
+tf_container  | Epoch 5 Batch 1300 Loss 0.5166
+tf_container  | Epoch 5 Batch 1400 Loss 0.5538
+tf_container  | Epoch 5 Loss 0.553748
+tf_container  | Time taken for 1 epoch 371.9402132034302 sec
+tf_container  |
+tf_container  | Epoch 6 Batch 0 Loss 0.5518
+tf_container  | Epoch 6 Batch 100 Loss 0.5687
+tf_container  | Epoch 6 Batch 200 Loss 0.5195
+tf_container  | Epoch 6 Batch 300 Loss 0.5929
+tf_container  | Epoch 6 Batch 400 Loss 0.5663
+tf_container  | Epoch 6 Batch 500 Loss 0.5374
+tf_container  | Epoch 6 Batch 600 Loss 0.5106
+tf_container  | Epoch 6 Batch 700 Loss 0.5601
+tf_container  | Epoch 6 Batch 800 Loss 0.5245
+tf_container  | Epoch 6 Batch 900 Loss 0.5100
+tf_container  | Epoch 6 Batch 1000 Loss 0.5431
+tf_container  | Epoch 6 Batch 1100 Loss 0.5546
+tf_container  | Epoch 6 Batch 1200 Loss 0.5653
+tf_container  | Epoch 6 Batch 1300 Loss 0.4994
+tf_container  | Epoch 6 Batch 1400 Loss 0.5357
+tf_container  | Epoch 6 Loss 0.533494
+tf_container  | Time taken for 1 epoch 371.91849756240845 sec
+tf_container  |
+tf_container  | Epoch 7 Batch 0 Loss 0.5350
+tf_container  | Epoch 7 Batch 100 Loss 0.5466
+tf_container  | Epoch 7 Batch 200 Loss 0.5064
+tf_container  | Epoch 7 Batch 300 Loss 0.5726
+tf_container  | Epoch 7 Batch 400 Loss 0.5480
+tf_container  | Epoch 7 Batch 500 Loss 0.5301
+tf_container  | Epoch 7 Batch 600 Loss 0.4898
+tf_container  | Epoch 7 Batch 700 Loss 0.5451
+tf_container  | Epoch 7 Batch 800 Loss 0.5054
+tf_container  | Epoch 7 Batch 900 Loss 0.4954
+tf_container  | Epoch 7 Batch 1000 Loss 0.5248
+tf_container  | Epoch 7 Batch 1100 Loss 0.5375
+tf_container  | Epoch 7 Batch 1200 Loss 0.5430
+tf_container  | Epoch 7 Batch 1300 Loss 0.4802
+tf_container  | Epoch 7 Batch 1400 Loss 0.5159
+tf_container  | Epoch 7 Loss 0.515385
+tf_container  | Time taken for 1 epoch 378.11804246902466 sec
+tf_container  |
+tf_container  | Epoch 8 Batch 0 Loss 0.5173
+tf_container  | Epoch 8 Batch 100 Loss 0.5333
+tf_container  | Epoch 8 Batch 200 Loss 0.4881
+tf_container  | Epoch 8 Batch 300 Loss 0.5559
+tf_container  | Epoch 8 Batch 400 Loss 0.5360
+tf_container  | Epoch 8 Batch 500 Loss 0.5103
+tf_container  | Epoch 8 Batch 600 Loss 0.4764
+tf_container  | Epoch 8 Batch 700 Loss 0.5322
+tf_container  | Epoch 8 Batch 800 Loss 0.4908
+tf_container  | Epoch 8 Batch 900 Loss 0.4741
+tf_container  | Epoch 8 Batch 1000 Loss 0.5084
+tf_container  | Epoch 8 Batch 1100 Loss 0.5208
+tf_container  | Epoch 8 Batch 1200 Loss 0.5237
+tf_container  | Epoch 8 Batch 1300 Loss 0.4704
+tf_container  | Epoch 8 Batch 1400 Loss 0.4988
+tf_container  | Epoch 8 Loss 0.499659
+tf_container  | Time taken for 1 epoch 374.9556291103363 sec
+tf_container  |
+tf_container  | Epoch 9 Batch 0 Loss 0.5029
+tf_container  | Epoch 9 Batch 100 Loss 0.5198
+tf_container  | Epoch 9 Batch 200 Loss 0.4793
+tf_container  | Epoch 9 Batch 300 Loss 0.5349
+tf_container  | Epoch 9 Batch 400 Loss 0.5149
+tf_container  | Epoch 9 Batch 500 Loss 0.5012
+tf_container  | Epoch 9 Batch 600 Loss 0.4748
+tf_container  | Epoch 9 Batch 700 Loss 0.5084
+tf_container  | Epoch 9 Batch 800 Loss 0.4738
+tf_container  | Epoch 9 Batch 900 Loss 0.4625
+tf_container  | Epoch 9 Batch 1000 Loss 0.4947
+tf_container  | Epoch 9 Batch 1100 Loss 0.5103
+tf_container  | Epoch 9 Batch 1200 Loss 0.5132
+tf_container  | Epoch 9 Batch 1300 Loss 0.4617
+tf_container  | Epoch 9 Batch 1400 Loss 0.4921
+tf_container  | Epoch 9 Loss 0.485578
+tf_container  | Time taken for 1 epoch 369.79283905029297 sec
+tf_container  |
+tf_container  | Epoch 10 Batch 0 Loss 0.4911
+tf_container  | Epoch 10 Batch 100 Loss 0.5026
+tf_container  | Epoch 10 Batch 200 Loss 0.4610
+tf_container  | Epoch 10 Batch 300 Loss 0.5140
+tf_container  | Epoch 10 Batch 400 Loss 0.4938
+tf_container  | Epoch 10 Batch 500 Loss 0.4855
+tf_container  | Epoch 10 Batch 600 Loss 0.4592
+tf_container  | Epoch 10 Batch 700 Loss 0.4897
+tf_container  | Epoch 10 Batch 800 Loss 0.4689
+tf_container  | Epoch 10 Batch 900 Loss 0.4502
+tf_container  | Epoch 10 Batch 1000 Loss 0.4838
+tf_container  | Epoch 10 Batch 1100 Loss 0.4977
+tf_container  | Epoch 10 Batch 1200 Loss 0.4931
+tf_container  | Epoch 10 Batch 1300 Loss 0.4479
+tf_container  | Epoch 10 Batch 1400 Loss 0.4881
+tf_container  | Epoch 10 Loss 0.473557
+tf_container  | Time taken for 1 epoch 370.8447198867798 sec
+tf_container  |
+tf_container  | Epoch 11 Batch 0 Loss 0.4885
+tf_container  | Epoch 11 Batch 100 Loss 0.4980
+tf_container  | Epoch 11 Batch 200 Loss 0.4518
+tf_container  | Epoch 11 Batch 300 Loss 0.4925
+tf_container  | Epoch 11 Batch 400 Loss 0.4941
+tf_container  | Epoch 11 Batch 500 Loss 0.4745
+tf_container  | Epoch 11 Batch 600 Loss 0.4462
+tf_container  | Epoch 11 Batch 700 Loss 0.4712
+tf_container  | Epoch 11 Batch 800 Loss 0.4484
+tf_container  | Epoch 11 Batch 900 Loss 0.4378
+tf_container  | Epoch 11 Batch 1000 Loss 0.4777
+tf_container  | Epoch 11 Batch 1100 Loss 0.4952
+tf_container  | Epoch 11 Batch 1200 Loss 0.4860
+tf_container  | Epoch 11 Batch 1300 Loss 0.4294
+tf_container  | Epoch 11 Batch 1400 Loss 0.4637
+tf_container  | Epoch 11 Loss 0.461470
+tf_container  | Time taken for 1 epoch 370.85370659828186 sec
+tf_container  |
+tf_container  | Epoch 12 Batch 0 Loss 0.4835
+tf_container  | Epoch 12 Batch 100 Loss 0.4807
+tf_container  | Epoch 12 Batch 200 Loss 0.4447
+tf_container  | Epoch 12 Batch 300 Loss 0.4819
+tf_container  | Epoch 12 Batch 400 Loss 0.4744
+tf_container  | Epoch 12 Batch 500 Loss 0.4682
+tf_container  | Epoch 12 Batch 600 Loss 0.4348
+tf_container  | Epoch 12 Batch 700 Loss 0.4591
+tf_container  | Epoch 12 Batch 800 Loss 0.4332
+tf_container  | Epoch 12 Batch 900 Loss 0.4329
+tf_container  | Epoch 12 Batch 1000 Loss 0.4622
+tf_container  | Epoch 12 Batch 1100 Loss 0.4761
+tf_container  | Epoch 12 Batch 1200 Loss 0.4743
+tf_container  | Epoch 12 Batch 1300 Loss 0.4243
+tf_container  | Epoch 12 Batch 1400 Loss 0.4547
+tf_container  | Epoch 12 Loss 0.451226
+tf_container  | Time taken for 1 epoch 369.9537935256958 sec
+tf_container  |
+tf_container  | Epoch 13 Batch 0 Loss 0.4764
+tf_container  | Epoch 13 Batch 100 Loss 0.4725
+tf_container  | Epoch 13 Batch 200 Loss 0.4419
+tf_container  | Epoch 13 Batch 300 Loss 0.4708
+tf_container  | Epoch 13 Batch 400 Loss 0.4674
+tf_container  | Epoch 13 Batch 500 Loss 0.4508
+tf_container  | Epoch 13 Batch 600 Loss 0.4487
+tf_container  | Epoch 13 Batch 700 Loss 0.4548
+tf_container  | Epoch 13 Batch 800 Loss 0.4291
+tf_container  | Epoch 13 Batch 900 Loss 0.4312
+tf_container  | Epoch 13 Batch 1000 Loss 0.4585
+tf_container  | Epoch 13 Batch 1100 Loss 0.4775
+tf_container  | Epoch 13 Batch 1200 Loss 0.4709
+tf_container  | Epoch 13 Batch 1300 Loss 0.4247
+tf_container  | Epoch 13 Batch 1400 Loss 0.4492
+tf_container  | Epoch 13 Loss 0.444644
+tf_container  | Time taken for 1 epoch 369.12994265556335 sec
+tf_container  |
+tf_container  | Epoch 14 Batch 0 Loss 0.4594
+tf_container  | Epoch 14 Batch 100 Loss 0.4577
+tf_container  | Epoch 14 Batch 200 Loss 0.4308
+tf_container  | Epoch 14 Batch 300 Loss 0.4754
+tf_container  | Epoch 14 Batch 400 Loss 0.4603
+tf_container  | Epoch 14 Batch 500 Loss 0.4332
+tf_container  | Epoch 14 Batch 600 Loss 0.4252
+tf_container  | Epoch 14 Batch 700 Loss 0.4452
+tf_container  | Epoch 14 Batch 800 Loss 0.4252
+tf_container  | Epoch 14 Batch 900 Loss 0.4314
+tf_container  | Epoch 14 Batch 1000 Loss 0.4491
+tf_container  | Epoch 14 Batch 1100 Loss 0.4653
+tf_container  | Epoch 14 Batch 1200 Loss 0.4557
+tf_container  | Epoch 14 Batch 1300 Loss 0.4176
+tf_container  | Epoch 14 Batch 1400 Loss 0.4372
+tf_container  | Epoch 14 Loss 0.436880
+tf_container  | Time taken for 1 epoch 367.72967076301575 sec
+tf_container  |
+tf_container  | Epoch 15 Batch 0 Loss 0.4561
+tf_container  | Epoch 15 Batch 100 Loss 0.4495
+tf_container  | Epoch 15 Batch 200 Loss 0.4240
+tf_container  | Epoch 15 Batch 300 Loss 0.4587
+tf_container  | Epoch 15 Batch 400 Loss 0.4481
+tf_container  | Epoch 15 Batch 500 Loss 0.4292
+tf_container  | Epoch 15 Batch 600 Loss 0.4242
+tf_container  | Epoch 15 Batch 700 Loss 0.4387
+tf_container  | Epoch 15 Batch 800 Loss 0.4080
+tf_container  | Epoch 15 Batch 900 Loss 0.4106
+tf_container  | Epoch 15 Batch 1000 Loss 0.4385
+tf_container  | Epoch 15 Batch 1100 Loss 0.4471
+tf_container  | Epoch 15 Batch 1200 Loss 0.4451
+tf_container  | Epoch 15 Batch 1300 Loss 0.4135
+tf_container  | Epoch 15 Batch 1400 Loss 0.4158
+tf_container  | Epoch 15 Loss 0.428285
+tf_container  | Time taken for 1 epoch 369.36240339279175 sec
+tf_container  |
+tf_container  | Epoch 16 Batch 0 Loss 0.4454
+tf_container  | Epoch 16 Batch 100 Loss 0.4358
+tf_container  | Epoch 16 Batch 200 Loss 0.4171
+tf_container  | Epoch 16 Batch 300 Loss 0.4506
+tf_container  | Epoch 16 Batch 400 Loss 0.4385
+tf_container  | Epoch 16 Batch 500 Loss 0.4281
+tf_container  | Epoch 16 Batch 600 Loss 0.4101
+tf_container  | Epoch 16 Batch 700 Loss 0.4218
+tf_container  | Epoch 16 Batch 800 Loss 0.4130
+tf_container  | Epoch 16 Batch 900 Loss 0.4052
+tf_container  | Epoch 16 Batch 1000 Loss 0.4278
+tf_container  | Epoch 16 Batch 1100 Loss 0.4411
+tf_container  | Epoch 16 Batch 1200 Loss 0.4323
+tf_container  | Epoch 16 Batch 1300 Loss 0.4081
+tf_container  | Epoch 16 Batch 1400 Loss 0.4106
+tf_container  | Epoch 16 Loss 0.420812
+tf_container  | Time taken for 1 epoch 368.8256456851959 sec
+tf_container  |
+tf_container  | Epoch 17 Batch 0 Loss 0.4431
+tf_container  | Epoch 17 Batch 100 Loss 0.4391
+tf_container  | Epoch 17 Batch 200 Loss 0.4085
+tf_container  | Epoch 17 Batch 300 Loss 0.4344
+tf_container  | Epoch 17 Batch 400 Loss 0.4378
+tf_container  | Epoch 17 Batch 500 Loss 0.4170
+tf_container  | Epoch 17 Batch 600 Loss 0.4083
+tf_container  | Epoch 17 Batch 700 Loss 0.4299
+tf_container  | Epoch 17 Batch 800 Loss 0.4032
+tf_container  | Epoch 17 Batch 900 Loss 0.3903
+tf_container  | Epoch 17 Batch 1000 Loss 0.4229
+tf_container  | Epoch 17 Batch 1100 Loss 0.4362
+tf_container  | Epoch 17 Batch 1200 Loss 0.4413
+tf_container  | Epoch 17 Batch 1300 Loss 0.3945
+tf_container  | Epoch 17 Batch 1400 Loss 0.4149
+tf_container  | Epoch 17 Loss 0.415218
+tf_container  | Time taken for 1 epoch 369.2182297706604 sec
+tf_container  |
+tf_container  | Epoch 18 Batch 0 Loss 0.4433
+tf_container  | Epoch 18 Batch 100 Loss 0.4383
+tf_container  | Epoch 18 Batch 200 Loss 0.4090
+tf_container  | Epoch 18 Batch 300 Loss 0.4338
+tf_container  | Epoch 18 Batch 400 Loss 0.4288
+tf_container  | Epoch 18 Batch 500 Loss 0.4165
+tf_container  | Epoch 18 Batch 600 Loss 0.3959
+tf_container  | Epoch 18 Batch 700 Loss 0.4126
+tf_container  | Epoch 18 Batch 800 Loss 0.3946
+tf_container  | Epoch 18 Batch 900 Loss 0.3856
+tf_container  | Epoch 18 Batch 1000 Loss 0.4120
+tf_container  | Epoch 18 Batch 1100 Loss 0.4264
+tf_container  | Epoch 18 Batch 1200 Loss 0.4346
+tf_container  | Epoch 18 Batch 1300 Loss 0.3977
+tf_container  | Epoch 18 Batch 1400 Loss 0.4001
+tf_container  | Epoch 18 Loss 0.407389
+tf_container  | Time taken for 1 epoch 369.2915303707123 sec
+tf_container  |
+tf_container  | Epoch 19 Batch 0 Loss 0.4322
+tf_container  | Epoch 19 Batch 100 Loss 0.4363
+tf_container  | Epoch 19 Batch 200 Loss 0.4118
+tf_container  | Epoch 19 Batch 300 Loss 0.4190
+tf_container  | Epoch 19 Batch 400 Loss 0.4206
+tf_container  | Epoch 19 Batch 500 Loss 0.3988
+tf_container  | Epoch 19 Batch 600 Loss 0.4033
+tf_container  | Epoch 19 Batch 700 Loss 0.4088
+tf_container  | Epoch 19 Batch 800 Loss 0.3893
+tf_container  | Epoch 19 Batch 900 Loss 0.3952
+tf_container  | Epoch 19 Batch 1000 Loss 0.4124
+tf_container  | Epoch 19 Batch 1100 Loss 0.4125
+tf_container  | Epoch 19 Batch 1200 Loss 0.4179
+tf_container  | Epoch 19 Batch 1300 Loss 0.3881
+tf_container  | Epoch 19 Batch 1400 Loss 0.3903
+tf_container  | Epoch 19 Loss 0.400964
+tf_container  | Time taken for 1 epoch 369.68250131607056 sec
+tf_container  |
+tf_container  | Epoch 20 Batch 0 Loss 0.4154
+tf_container  | Epoch 20 Batch 100 Loss 0.4244
+tf_container  | Epoch 20 Batch 200 Loss 0.4082
+tf_container  | Epoch 20 Batch 300 Loss 0.4138
+tf_container  | Epoch 20 Batch 400 Loss 0.4094
+tf_container  | Epoch 20 Batch 500 Loss 0.3937
+tf_container  | Epoch 20 Batch 600 Loss 0.4097
+tf_container  | Epoch 20 Batch 700 Loss 0.4078
+tf_container  | Epoch 20 Batch 800 Loss 0.3958
+tf_container  | Epoch 20 Batch 900 Loss 0.3765
+tf_container  | Epoch 20 Batch 1000 Loss 0.4048
+tf_container  | Epoch 20 Batch 1100 Loss 0.4201
+tf_container  | Epoch 20 Batch 1200 Loss 0.4358
+tf_container  | Epoch 20 Batch 1300 Loss 0.3806
+tf_container  | Epoch 20 Batch 1400 Loss 0.3805
+tf_container  | Epoch 20 Loss 0.394665
+tf_container  | Time taken for 1 epoch 368.5203700065613 sec
+tf_container  |
+tf_container  | Epoch 21 Batch 0 Loss 0.4119
+tf_container  | Epoch 21 Batch 100 Loss 0.4323
+tf_container  | Epoch 21 Batch 200 Loss 0.3997
+tf_container  | Epoch 21 Batch 300 Loss 0.4071
+tf_container  | Epoch 21 Batch 400 Loss 0.4139
+tf_container  | Epoch 21 Batch 500 Loss 0.3992
+tf_container  | Epoch 21 Batch 600 Loss 0.4113
+tf_container  | Epoch 21 Batch 700 Loss 0.3968
+tf_container  | Epoch 21 Batch 800 Loss 0.3952
+tf_container  | Epoch 21 Batch 900 Loss 0.3757
+tf_container  | Epoch 21 Batch 1000 Loss 0.3879
+tf_container  | Epoch 21 Batch 1100 Loss 0.4046
+tf_container  | Epoch 21 Batch 1200 Loss 0.4036
+tf_container  | Epoch 21 Batch 1300 Loss 0.3799
+tf_container  | Epoch 21 Batch 1400 Loss 0.3868
+tf_container  | Epoch 21 Loss 0.390958
+tf_container  | Time taken for 1 epoch 371.47253489494324 sec
+tf_container  |
+tf_container  | Epoch 22 Batch 0 Loss 0.4066
+tf_container  | Epoch 22 Batch 100 Loss 0.4294
+tf_container  | Epoch 22 Batch 200 Loss 0.3979
+tf_container  | Epoch 22 Batch 300 Loss 0.4012
+tf_container  | Epoch 22 Batch 400 Loss 0.4062
+tf_container  | Epoch 22 Batch 500 Loss 0.3838
+tf_container  | Epoch 22 Batch 600 Loss 0.3821
+tf_container  | Epoch 22 Batch 700 Loss 0.3961
+tf_container  | Epoch 22 Batch 800 Loss 0.3818
+tf_container  | Epoch 22 Batch 900 Loss 0.3532
+tf_container  | Epoch 22 Batch 1000 Loss 0.3823
+tf_container  | Epoch 22 Batch 1100 Loss 0.3983
+tf_container  | Epoch 22 Batch 1200 Loss 0.4021
+tf_container  | Epoch 22 Batch 1300 Loss 0.3820
+tf_container  | Epoch 22 Batch 1400 Loss 0.3873
+tf_container  | Epoch 22 Loss 0.386042
+tf_container  | Time taken for 1 epoch 369.40901017189026 sec
+tf_container  |
+tf_container  | Epoch 23 Batch 0 Loss 0.3939
+tf_container  | Epoch 23 Batch 100 Loss 0.4197
+tf_container  | Epoch 23 Batch 200 Loss 0.3879
+tf_container  | Epoch 23 Batch 300 Loss 0.3960
+tf_container  | Epoch 23 Batch 400 Loss 0.3943
+tf_container  | Epoch 23 Batch 500 Loss 0.3752
+tf_container  | Epoch 23 Batch 600 Loss 0.3851
+tf_container  | Epoch 23 Batch 700 Loss 0.3892
+tf_container  | Epoch 23 Batch 800 Loss 0.3796
+tf_container  | Epoch 23 Batch 900 Loss 0.3463
+tf_container  | Epoch 23 Batch 1000 Loss 0.3722
+tf_container  | Epoch 23 Batch 1100 Loss 0.4053
+tf_container  | Epoch 23 Batch 1200 Loss 0.3961
+tf_container  | Epoch 23 Batch 1300 Loss 0.3787
+tf_container  | Epoch 23 Batch 1400 Loss 0.3700
+tf_container  | Epoch 23 Loss 0.379687
+tf_container  | Time taken for 1 epoch 369.7224566936493 sec
+tf_container  |
+tf_container  | Epoch 24 Batch 0 Loss 0.4010
+tf_container  | Epoch 24 Batch 100 Loss 0.4254
+tf_container  | Epoch 24 Batch 200 Loss 0.3916
+tf_container  | Epoch 24 Batch 300 Loss 0.3883
+tf_container  | Epoch 24 Batch 400 Loss 0.3952
+tf_container  | Epoch 24 Batch 500 Loss 0.3549
+tf_container  | Epoch 24 Batch 600 Loss 0.3748
+tf_container  | Epoch 24 Batch 700 Loss 0.3894
+tf_container  | Epoch 24 Batch 800 Loss 0.3719
+tf_container  | Epoch 24 Batch 900 Loss 0.3566
+tf_container  | Epoch 24 Batch 1000 Loss 0.3700
+tf_container  | Epoch 24 Batch 1100 Loss 0.3870
+tf_container  | Epoch 24 Batch 1200 Loss 0.3923
+tf_container  | Epoch 24 Batch 1300 Loss 0.3797
+tf_container  | Epoch 24 Batch 1400 Loss 0.3680
+tf_container  | Epoch 24 Loss 0.376352
+tf_container  | Time taken for 1 epoch 369.46076798439026 sec
+tf_container  |
+tf_container  | Epoch 25 Batch 0 Loss 0.3909
+tf_container  | Epoch 25 Batch 100 Loss 0.4218
+tf_container  | Epoch 25 Batch 200 Loss 0.3776
+tf_container  | Epoch 25 Batch 300 Loss 0.3906
+tf_container  | Epoch 25 Batch 400 Loss 0.3822
+tf_container  | Epoch 25 Batch 500 Loss 0.3616
+tf_container  | Epoch 25 Batch 600 Loss 0.3754
+tf_container  | Epoch 25 Batch 700 Loss 0.3843
+tf_container  | Epoch 25 Batch 800 Loss 0.3571
+tf_container  | Epoch 25 Batch 900 Loss 0.3492
+tf_container  | Epoch 25 Batch 1000 Loss 0.3580
+tf_container  | Epoch 25 Batch 1100 Loss 0.3836
+tf_container  | Epoch 25 Batch 1200 Loss 0.3838
+tf_container  | Epoch 25 Batch 1300 Loss 0.3697
+tf_container  | Epoch 25 Batch 1400 Loss 0.3676
+tf_container  | Epoch 25 Loss 0.371442
+tf_container  | Time taken for 1 epoch 370.14370942115784 sec
+tf_container  |
+tf_container  | Epoch 26 Batch 0 Loss 0.3956
+tf_container  | Epoch 26 Batch 100 Loss 0.4165
+tf_container  | Epoch 26 Batch 200 Loss 0.3832
+tf_container  | Epoch 26 Batch 300 Loss 0.3835
+tf_container  | Epoch 26 Batch 400 Loss 0.3857
+tf_container  | Epoch 26 Batch 500 Loss 0.3487
+tf_container  | Epoch 26 Batch 600 Loss 0.3648
+tf_container  | Epoch 26 Batch 700 Loss 0.3700
+tf_container  | Epoch 26 Batch 800 Loss 0.3528
+tf_container  | Epoch 26 Batch 900 Loss 0.3420
+tf_container  | Epoch 26 Batch 1000 Loss 0.3615
+tf_container  | Epoch 26 Batch 1100 Loss 0.3777
+tf_container  | Epoch 26 Batch 1200 Loss 0.3765
+tf_container  | Epoch 26 Batch 1300 Loss 0.3704
+tf_container  | Epoch 26 Batch 1400 Loss 0.3571
+tf_container  | Epoch 26 Loss 0.367065
+tf_container  | Time taken for 1 epoch 369.2723536491394 sec
+tf_container  |
+tf_container  | Epoch 27 Batch 0 Loss 0.3836
+tf_container  | Epoch 27 Batch 100 Loss 0.4071
+tf_container  | Epoch 27 Batch 200 Loss 0.3732
+tf_container  | Epoch 27 Batch 300 Loss 0.3720
+tf_container  | Epoch 27 Batch 400 Loss 0.3890
+tf_container  | Epoch 27 Batch 500 Loss 0.3394
+tf_container  | Epoch 27 Batch 600 Loss 0.3653
+tf_container  | Epoch 27 Batch 700 Loss 0.3680
+tf_container  | Epoch 27 Batch 800 Loss 0.3534
+tf_container  | Epoch 27 Batch 900 Loss 0.3400
+tf_container  | Epoch 27 Batch 1000 Loss 0.3694
+tf_container  | Epoch 27 Batch 1100 Loss 0.3758
+tf_container  | Epoch 27 Batch 1200 Loss 0.3959
+tf_container  | Epoch 27 Batch 1300 Loss 0.3738
+tf_container  | Epoch 27 Batch 1400 Loss 0.3544
+tf_container  | Epoch 27 Loss 0.363646
+tf_container  | Time taken for 1 epoch 369.1578507423401 sec
+tf_container  |
+tf_container  | Epoch 28 Batch 0 Loss 0.3834
+tf_container  | Epoch 28 Batch 100 Loss 0.3999
+tf_container  | Epoch 28 Batch 200 Loss 0.3730
+tf_container  | Epoch 28 Batch 300 Loss 0.3769
+tf_container  | Epoch 28 Batch 400 Loss 0.3731
+tf_container  | Epoch 28 Batch 500 Loss 0.3423
+tf_container  | Epoch 28 Batch 600 Loss 0.3613
+tf_container  | Epoch 28 Batch 700 Loss 0.3726
+tf_container  | Epoch 28 Batch 800 Loss 0.3551
+tf_container  | Epoch 28 Batch 900 Loss 0.3306
+tf_container  | Epoch 28 Batch 1000 Loss 0.3553
+tf_container  | Epoch 28 Batch 1100 Loss 0.3701
+tf_container  | Epoch 28 Batch 1200 Loss 0.3756
+tf_container  | Epoch 28 Batch 1300 Loss 0.3519
+tf_container  | Epoch 28 Batch 1400 Loss 0.3560
+tf_container  | Epoch 28 Loss 0.359178
+tf_container  | Time taken for 1 epoch 368.72051668167114 sec
+tf_container  |
+tf_container  | Epoch 29 Batch 0 Loss 0.3716
+tf_container  | Epoch 29 Batch 100 Loss 0.3896
+tf_container  | Epoch 29 Batch 200 Loss 0.3635
+tf_container  | Epoch 29 Batch 300 Loss 0.3613
+tf_container  | Epoch 29 Batch 400 Loss 0.3679
+tf_container  | Epoch 29 Batch 500 Loss 0.3361
+tf_container  | Epoch 29 Batch 600 Loss 0.3678
+tf_container  | Epoch 29 Batch 700 Loss 0.3526
+tf_container  | Epoch 29 Batch 800 Loss 0.3404
+tf_container  | Epoch 29 Batch 900 Loss 0.3287
+tf_container  | Epoch 29 Batch 1000 Loss 0.3504
+tf_container  | Epoch 29 Batch 1100 Loss 0.3786
+tf_container  | Epoch 29 Batch 1200 Loss 0.3752
+tf_container  | Epoch 29 Batch 1300 Loss 0.3482
+tf_container  | Epoch 29 Batch 1400 Loss 0.3538
+tf_container  | Epoch 29 Loss 0.354984
+tf_container  | Time taken for 1 epoch 369.38693952560425 sec
+tf_container  |
+tf_container  | Epoch 30 Batch 0 Loss 0.3724
+tf_container  | Epoch 30 Batch 100 Loss 0.3935
+tf_container  | Epoch 30 Batch 200 Loss 0.3668
+tf_container  | Epoch 30 Batch 300 Loss 0.3553
+tf_container  | Epoch 30 Batch 400 Loss 0.3668
+tf_container  | Epoch 30 Batch 500 Loss 0.3329
+tf_container  | Epoch 30 Batch 600 Loss 0.3424
+tf_container  | Epoch 30 Batch 700 Loss 0.3615
+tf_container  | Epoch 30 Batch 800 Loss 0.3600
+tf_container  | Epoch 30 Batch 900 Loss 0.3336
+tf_container  | Epoch 30 Batch 1000 Loss 0.3378
+tf_container  | Epoch 30 Batch 1100 Loss 0.3791
+tf_container  | Epoch 30 Batch 1200 Loss 0.3725
+tf_container  | Epoch 30 Batch 1300 Loss 0.3518
+tf_container  | Epoch 30 Batch 1400 Loss 0.3520
+tf_container  | Epoch 30 Loss 0.351979
+tf_container  | Time taken for 1 epoch 369.30661940574646 sec
+tf_container  |
