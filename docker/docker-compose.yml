@@ -1,15 +1,18 @@
-version: '3.8'
-
 services:
     tf_service:
         image: aldo/tf02:new1
         container_name: tf_container
         volumes:
-        #    - ../src/aldo_09_2020:/workspace/src
         - ../workspace:/workspace
         runtime: nvidia
         environment:
             - NVIDIA_VISIBLE_DEVICES=all
         stdin_open: true
         tty: true
-        command: /bin/bash
+        #command: python -u /workspace/src/encoderIMAGE_trainer.py
+        command: python -u /workspace/src/encoderIMAGE.py
+        #command: python -u /workspace/src/encoderTEXT.py
+        #command: python -u /workspace/src/encoderTEXT_trainer.py
+        #command: python -u /workspace/src/image_to_caption_queries.py
+        #command: python -u /workspace/src/caption_to_images_queries.py
+        #command: /bin/bash

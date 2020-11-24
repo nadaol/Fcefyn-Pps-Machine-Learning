@@ -99,12 +99,12 @@ EVAL_LIMIT = 1000
 QUERIES_LIMIT = 100
 
 # Path para guardar la codificacion de las imagenes (features) 
-#encoded_image_path = '/workspace/pickle_saves/encoded_eval_images/'
-encoded_image_path = '/workspace/pickle_saves/encoded_train_images/'
+encoded_image_path = '/workspace/pickle_saves/encoded_eval_images/'
+#encoded_image_path = '/workspace/pickle_saves/encoded_train_images/'
 
 # Path para guardar la salida del codificador
-#encoded_captions_path = '/workspace/pickle_saves/encoded_eval_captions/'
-encoded_captions_path = '/workspace/pickle_saves/encoded_train_captions/'
+encoded_captions_path = '/workspace/pickle_saves/encoded_eval_captions/'
+#encoded_captions_path = '/workspace/pickle_saves/encoded_train_captions/'
 
 # Obtengo objeto de loss
 loss_object = tf.keras.losses.MeanSquaredError()
@@ -156,8 +156,8 @@ def validQuery (nearest_k,image_embedding_path):
 	print("\n\nEmbedding Image Query : %s \n"%image_embedding_path)
 	for error,encoded_caption_id,caption_uid in nearest_k:
 		tf.print("Retrieved caption_id [%s] , error : " %(encoded_caption_id),error)
-		cap_seq_to_string(cap_train[caption_uid-1])
-		#cap_seq_to_string(cap_val[caption_uid-1])
+		#cap_seq_to_string(cap_train[caption_uid-1])
+		cap_seq_to_string(cap_val[caption_uid-1])
 		if(encoded_caption_id == image_id): # imagen -> 1 captions  = 1
 			#relevant_elements_count+=1
 			relevant_elements_count=1

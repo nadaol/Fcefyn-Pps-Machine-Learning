@@ -107,8 +107,8 @@ print("Correlated image : %s \n" , img_name_val[0])
 
 # hyperparametro k de recall
 RECALL_K = 5
-EVAL_LIMIT = 100000
-QUERIES_LIMIT = 10
+EVAL_LIMIT = 1000
+QUERIES_LIMIT = 100
 
 # Obtengo objeto de loss
 loss_object = tf.keras.losses.MeanSquaredError()
