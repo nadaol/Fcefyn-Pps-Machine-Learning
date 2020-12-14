@@ -28,7 +28,7 @@
     sudo curl -L "https://github.com/docker/compose/releases/download/1.27.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 
 ## Run a command in the container
-### Modify command line in ./docker/docker-compose.yml
+    Modify command line in ./docker/docker-compose.yml
 
 ## start the container in background,detach (./docker/)
     docker-compose up -d
