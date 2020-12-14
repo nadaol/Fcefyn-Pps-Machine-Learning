@@ -27,14 +27,17 @@
 ## installation of docker-compose 1.27.1 : 
     sudo curl -L "https://github.com/docker/compose/releases/download/1.27.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 
-## start container (./docker/)
+## Run a command in the container
+### Modify command line in ./docker/docker-compose.yml
+
+## start the container in background,detach (./docker/)
     docker-compose up -d
 
-## enter to container
-    docker exec -ti tf_container /bin/bash
+## See and follow stdout of container
+    docker logs tf_container -f
 
-## execute python code from container (/workspace/src/)
-    python code.py
+## Stop the container
+    docker stop tf_container
 
 ## remove containers (./docker/)
-    docker-compose down 
+    docker rm tf_container
