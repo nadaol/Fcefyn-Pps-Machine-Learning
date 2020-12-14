@@ -10,6 +10,6 @@
 - Cancinos José María  (<jmcancinos97@gmail.com>)
 - Oliva Nahuel David   (<nadaol@hotmail.com>)
 
-#### - [Drive](https://drive.google.com/drive/folders/16xYWSwS2Y6UoheTaLjHjC1_pIHSXF2Jk?usp=sharing)
+#### - [Documentos](https://drive.google.com/drive/folders/1SA1t1HS8OBfQdyDZG-6yn28xhz2De7nn?usp=sharing)
 
 #### - [ Planilla de avances](https://docs.google.com/spreadsheets/d/1-fFx5ETeMnNhrxgCORMWgcmKeKTp4sZ_OK4yFtKkHLk/edit?usp=sharing)
