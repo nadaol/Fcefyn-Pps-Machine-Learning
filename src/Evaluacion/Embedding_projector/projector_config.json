@@ -1,0 +1,12 @@
+{
+    "embeddings": [
+      {
+        "tensorName": "My tensor",
+        "tensorShape": [
+          16384
+        ],
+        "tensorPath": "https://raw.githubusercontent.com/nadaol/Fcefyn-Pps-Machine-Learning/master/src/Evaluacion/Embedding_projector/Tsv_files/Captions_tensor.tsv?token=ALWUAXVTIFCV3O32Q4KUSJK75JV7U",
+        "metadataPath": "https://raw.githubusercontent.com/nadaol/Fcefyn-Pps-Machine-Learning/master/src/Evaluacion/Embedding_projector/Tsv_files/Captions_metadata.tsv?token=ALWUAXWNKSHYNA3JXQBFMOK75JV5K"
+      }
+    ]
+  }
