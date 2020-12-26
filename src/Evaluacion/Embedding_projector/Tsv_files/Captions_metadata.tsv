@@ -671,8 +671,7 @@ Caption	Image_Id
 <start> several baskets filled with apples in each one <end>	000000466262
 <start> a couple of baskets that have fruit in them <end>	000000466262
 <start> several buckets full of apples both red and green <end>	000000466262
-<start> three zebras eating hay from <unk> inside a barn like structure 
- <end>	000000466265
+<start> three zebras eating hay from <unk> inside a barn like structure <end>	000000466265
 <start> 3 zebras eating hay inside of a stable <end>	000000466265
 <start> three stripped zebras are lined up eating hay <end>	000000466265
 <start> a group of zebras at the zoo eating hay <end>	000000466265
@@ -861,8 +860,7 @@ Caption	Image_Id
 <start> a calf and a dog are running in a field <end>	000000466514
 <start> a dog running towards a cow near a fence <end>	000000466514
 <start> a dog is chasing along behind a cow in a field <end>	000000466514
-<start> there is a picture of an outside region 
- <end>	000000466514
+<start> there is a picture of an outside region <end>	000000466514
 <start> a woman at a picnic table holds a food item <end>	000000466519
 <start> a lady standing by a table with a variety of food laid out <end>	000000466519
 <start> a woman preparing food at a camping sight <end>	000000466519
@@ -1000,6 +998,7 @@ Caption	Image_Id
 <start> a group of people <unk> in a body of water on an overcast day <end>	000000466662
 <start> a group of various traveling objects on a wooden floor <end>	000000466664
 <start> a <unk> contents are laid out and include toiletries electronics and reading material <end>	000000466664
+<start> a table with cell phones books and bags <end>	000000466664
 N o n e	000000465269
 N o n e	000000465285
 N o n e	000000465294
