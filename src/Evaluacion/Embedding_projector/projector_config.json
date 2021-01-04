@@ -2,7 +2,7 @@
     "embeddings": [
       {
         "tensorName": "Caption/Images Embedding Space",
-        "tensorShape": [16384,200],
+        "tensorShape": [16384,1200],
         "tensorPath": "https://raw.githubusercontent.com/nadaol/Fcefyn-Pps-Machine-Learning/master/src/Evaluacion/Embedding_projector/Tsv_files/Captions_tensor.tsv?token=ALWUAXWXJSJLQMZUJFO65XC77SO5G",
         "metadataPath": "https://raw.githubusercontent.com/nadaol/Fcefyn-Pps-Machine-Learning/master/src/Evaluacion/Embedding_projector/Tsv_files/Captions_tensor.tsv?token=ALWUAXUW7THVISQWCLB3LFC77SPA6"
       }
