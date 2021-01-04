@@ -14,4 +14,4 @@
 
 #### - [ Planilla de avances](https://docs.google.com/spreadsheets/d/1-fFx5ETeMnNhrxgCORMWgcmKeKTp4sZ_OK4yFtKkHLk/edit?usp=sharing)
 
-#### - [Embedding Visualization](https://projector.tensorflow.org/?config=https://gist.githubusercontent.com/nadaol/e274e012f007448c1143eb6e9d228648/raw/3c71cbe9eeb455823191583d41d28a1c93e73ca1/projector_config.json)
+#### - [Embedding Visualization](https://projector.tensorflow.org/?config=https://gist.githubusercontent.com/nadaol/e274e012f007448c1143eb6e9d228648/raw/72eab4f4fcb64544209807db74d239bdfca188b7/projector_config.json)
