@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 import unicodedata
 import re
+import math
 import numpy as np
 import os
 import io
@@ -28,8 +29,14 @@ ENCODED_IMAGES_PATH = '/workspace/pickle_saves/encoded_eval_images_lstm_30/'
 #encoded_image_path = '/workspace/pickle_saves/encoded_train_images/'
 
 # Path para cargar las codificaciones de las captions
-ENCODED_CAPTIONS_PATH = '/workspace/pickle_saves/encoded_eval_captions_lstm/'
+ENCODED_CAPTIONS_PATH = '/workspace/pickle_saves/encoded_eval_captions_noconvol/'
 #encoded_captions_path = '/workspace/pickle_saves/encoded_train_captions/'
+
+enc_caption_tsv = '/workspace/Evaluations/Tsv/'
+caption_metadata_tsv = '/workspace/Evaluations/Tsv/'
+
+enc_img_tsv = '/workspace/Evaluations/Tsv/'
+img_metadata_tsv = '/workspace/Evaluations/Tsv/'
 
 
 def print_nearest_images(custom_caption,encoded_image_paths,encoded_images):
@@ -41,7 +48,7 @@ def print_nearest_images(custom_caption,encoded_image_paths,encoded_images):
     caption = tf.keras.preprocessing.sequence.pad_sequences(caption, padding='post',maxlen=52)
     print(caption.shape)
     encoder = txt_enc.get_model()
-    encoder,ckpt_manager,optimizer,start_epoch = txt_enc.load_checkpoint(encoder,'ckpt-4')
+    encoder,ckpt_manager,optimizer,start_epoch = txt_enc.load_checkpoint(encoder,'ckpt-2')
     encoded_caption = txt_enc.evaluate(encoder,caption)
     nearest_k,correlated_img_error = search_nearest_k_encoded_images(encoded_caption,'/None_312',encoded_image_paths,encoded_images)
     tf.print(nearest_k)
@@ -61,7 +68,7 @@ def get_encoded_captions_paths(limit):
 def get_encoded_images_paths(limit):
     encoded_images_paths= glob.glob(ENCODED_IMAGES_PATH + '*.emb') # cargo todos los nombres de las codificaciones de las imagenes
     encoded_images_paths = sorted(encoded_images_paths)
-    encoded_images_paths = encoded_images_paths[:(int)(limit)]
+    encoded_images_paths = encoded_images_paths[:limit]
     encoded_images = np.zeros((len(encoded_images_paths),16384),dtype='float32') 
     for i in range(len(encoded_images_paths)):
         with open(encoded_images_paths[i], 'rb') as handle:
@@ -191,8 +198,71 @@ def get_caption_image_Recall(encoded_captions_paths,encoded_images_paths,encoded
 # Recall@k =  total de elementos correctos devueltos de todas las quieries/ total de elementos correctos esperados
 # elementos esperados por cada query = 5 (captions por imagenes correctas)
 
+
+def map_captions(caption_seq,cap_path,cap_tensor):
+    tokenizer = ds.load_tokenizer()
+    img_id = cap_path.split('/')[-1].split('_')[1]
+    caption_string = ds.cap_seq_to_string(caption_seq,tokenizer)
+    return cap_tensor,caption_string,img_id
+
+#COCO_train2014_000000465301
+def map_images(img_path,img_tensor):
+    img_id = img_path.split('/')[-1].split('_')[2][:12]
+
+    return img_tensor,'None',img_id
+
+def get_embedding_lists(limit):
+
+    images_names_train, images_names_eval , captions_train, captions_eval , tokenizer = ds.get_image_names_captions_lists()
+    encoded_images_paths,encoded_images = get_encoded_images_paths(limit)
+    encoded_captions_paths,encoded_captions = get_encoded_captions_paths(limit)
+
+    captions_list = []
+    images_list = []
+
+    for i,cap_path in enumerate(encoded_captions_paths):
+        captions_list.append(map_captions(captions_eval[i],cap_path,encoded_captions[i]))
+
+    img_path_aux = ''
+    i=0
+    for image_path,img_tensor in zip(encoded_images_paths,encoded_images):
+        if(img_path_aux != image_path):
+            images_list.append(map_images(image_path,img_tensor))
+            i+=1
+        else :
+            img_path_aux = image_path
+
+        if i==(math.floor(limit/5)):
+            break
+
+    return captions_list,images_list
+
+def write_embeddings(caption_list,image_list,file_name,metadata1_title,metadata2_title,tensors_save_path,metadata_save_path):
+
+    tensors_file = open(tensors_save_path+file_name+'_tensor.tsv', "w")
+    metadata_file = open(metadata_save_path+file_name+'_metadata.tsv', "w")
+
+    metadata_file.write(metadata1_title + '\t' + metadata2_title+'\n')
+
+    embedding_list = caption_list + image_list
+
+    for tensor,metadata1,metadata2 in embedding_list:
+        metadata_file.write(" ".join(metadata1)+'\t'+metadata2)
+        for tensor_element in tensor:
+            tensors_file.write(str(tensor_element)+'\t')
+        tensors_file.write('\n')
+        metadata_file.write('\n')
+    print('Writed tsv file with %d captions and %d images \n' % (len(caption_list),len(image_list)) )
+
+caption_list,image_list = get_embedding_lists(1000)
+
+#write_embeddings(caption_list,image_list,'Captions','Caption','Image_Id',enc_caption_tsv,caption_metadata_tsv)
+
+
+""" 
 encoded_captions_paths,encoded_captions = get_encoded_captions_paths(EVAL_LIMIT)
 encoded_images_paths,encoded_images = get_encoded_images_paths(EVAL_LIMIT/5)
-#get_image_caption_Recall(encoded_captions_paths,encoded_images_paths,encoded_captions,encoded_images)
-get_caption_image_Recall(encoded_captions_paths,encoded_images_paths,encoded_captions,encoded_images)
-#print_nearest_images('<start> a group of pictures including food and beverages <end>',encoded_images_paths,encoded_images)
+get_image_caption_Recall(encoded_captions_paths,encoded_images_paths,encoded_captions,encoded_images)
+#get_caption_image_Recall(encoded_captions_paths,encoded_images_paths,encoded_captions,encoded_images)
+#print_nearest_images('<start> a group of pictures including food and beverages <end>',encoded_images_paths,encoded_images) 
+"""

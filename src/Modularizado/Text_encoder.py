@@ -54,7 +54,7 @@ def get_model():
             self.batch_sz = batch_sz
             self.enc_units = enc_units
             self.enc_output_units = enc_output_units
-            self.embedding = tf.keras.layers.Embedding(vocab_size, embedding_dim) # capa Embedding
+            self.embedding = tf.keras.layers.Embedding(vocab_size,embedding_dim) # capa Embedding
             self.gru = tf.keras.layers.GRU(self.enc_units,return_sequences=True,return_state=True,recurrent_initializer='glorot_uniform')  # capa GRU
             self.cnn1 = tf.keras.layers.Conv1D(256, 4, activation='relu',input_shape = [52,256])  # capa Convolucional
             self.fc = tf.keras.layers.Dense(enc_output_units)   # FC1 - Dense ------(if no activation is specified it uses linear)

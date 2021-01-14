@@ -24,6 +24,8 @@
 
     checkpoints :   guardado de puntos de entrenamiento para ambos modelos
 
+    Evaluations : Datos de evaluacion de los distintos modelos de prueba (Imágenes de perdida en el entrenamiento,logs de entrenamiento ,archivos .tsv para la visualización de embeddings)
+
 ## installation of docker-compose 1.27.1 : 
     sudo curl -L "https://github.com/docker/compose/releases/download/1.27.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 
